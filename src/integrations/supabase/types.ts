@@ -14,7 +14,208 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      config: {
+        Row: {
+          chave: string
+          valor: string | null
+        }
+        Insert: {
+          chave: string
+          valor?: string | null
+        }
+        Update: {
+          chave?: string
+          valor?: string | null
+        }
+        Relationships: []
+      }
+      leads_atletas: {
+        Row: {
+          aceite_lgpd: boolean
+          cidade: string | null
+          convertido_em: string | null
+          created_at: string | null
+          email: string
+          greenn_sale_id: string | null
+          id: string
+          nome: string
+          produto_escolhido: string | null
+          sensei_id: string | null
+          status: string
+          uf: string
+          whatsapp: string
+        }
+        Insert: {
+          aceite_lgpd?: boolean
+          cidade?: string | null
+          convertido_em?: string | null
+          created_at?: string | null
+          email: string
+          greenn_sale_id?: string | null
+          id?: string
+          nome: string
+          produto_escolhido?: string | null
+          sensei_id?: string | null
+          status?: string
+          uf: string
+          whatsapp: string
+        }
+        Update: {
+          aceite_lgpd?: boolean
+          cidade?: string | null
+          convertido_em?: string | null
+          created_at?: string | null
+          email?: string
+          greenn_sale_id?: string | null
+          id?: string
+          nome?: string
+          produto_escolhido?: string | null
+          sensei_id?: string | null
+          status?: string
+          uf?: string
+          whatsapp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_atletas_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagamentos_orfaos: {
+        Row: {
+          conciliado: boolean | null
+          created_at: string | null
+          documento_pagador: string | null
+          email_pagador: string | null
+          id: string
+          lead_id: string | null
+          payload: Json | null
+          sale_id: string | null
+        }
+        Insert: {
+          conciliado?: boolean | null
+          created_at?: string | null
+          documento_pagador?: string | null
+          email_pagador?: string | null
+          id?: string
+          lead_id?: string | null
+          payload?: Json | null
+          sale_id?: string | null
+        }
+        Update: {
+          conciliado?: boolean | null
+          created_at?: string | null
+          documento_pagador?: string | null
+          email_pagador?: string | null
+          id?: string
+          lead_id?: string | null
+          payload?: Json | null
+          sale_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_orfaos_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_atletas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      senseis: {
+        Row: {
+          cidade: string
+          created_at: string | null
+          data_adesao: string | null
+          dojo: string
+          email: string
+          foto_url: string | null
+          graduacao: string | null
+          id: string
+          instagram: string | null
+          link_afiliado_avulso: string | null
+          link_afiliado_mensal: string | null
+          nome: string
+          obs: string | null
+          piloto: boolean
+          status: string
+          tempo_ensino: string | null
+          uf: string
+          whatsapp: string
+        }
+        Insert: {
+          cidade: string
+          created_at?: string | null
+          data_adesao?: string | null
+          dojo: string
+          email: string
+          foto_url?: string | null
+          graduacao?: string | null
+          id?: string
+          instagram?: string | null
+          link_afiliado_avulso?: string | null
+          link_afiliado_mensal?: string | null
+          nome: string
+          obs?: string | null
+          piloto?: boolean
+          status?: string
+          tempo_ensino?: string | null
+          uf: string
+          whatsapp: string
+        }
+        Update: {
+          cidade?: string
+          created_at?: string | null
+          data_adesao?: string | null
+          dojo?: string
+          email?: string
+          foto_url?: string | null
+          graduacao?: string | null
+          id?: string
+          instagram?: string | null
+          link_afiliado_avulso?: string | null
+          link_afiliado_mensal?: string | null
+          nome?: string
+          obs?: string | null
+          piloto?: boolean
+          status?: string
+          tempo_ensino?: string | null
+          uf?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      webhook_log: {
+        Row: {
+          created_at: string | null
+          id: string
+          payload: Json
+          processado: boolean | null
+          resultado: string | null
+          sale_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          payload: Json
+          processado?: boolean | null
+          resultado?: string | null
+          sale_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          payload?: Json
+          processado?: boolean | null
+          resultado?: string | null
+          sale_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
