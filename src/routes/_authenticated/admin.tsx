@@ -562,10 +562,57 @@ function PainelSensei({
               Conta criada. Repasse automático de R$ 80 (mensal) e R$ 20 (avulso) por atleta.
             </p>
           )}
+        </div>
+
+        <div className="mt-8 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Adesão do sensei · R$ 1.800 em 12x de R$ 150</p>
           <div className="flex justify-between gap-4 text-sm">
-            <span className="eyebrow">Adesão paga</span>
+            <span className="text-muted-fg">Adesão paga</span>
             <span>{sensei.adesao_paga ? "sim" : "não"}</span>
           </div>
+          {sensei.adesao_invoice_url ? (
+            <a
+              href={sensei.adesao_invoice_url}
+              target="_blank"
+              rel="noreferrer"
+              className="block break-all text-sm text-brand underline"
+            >
+              Abrir cobrança da adesão
+            </a>
+          ) : null}
+          <Field label="CPF ou CNPJ do sensei (pagador)">
+            <TextInput
+              value={adesao.cpf_cnpj}
+              inputMode="numeric"
+              onChange={(e) => setAdesao({ ...adesao, cpf_cnpj: maskCpf(e.target.value) })}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ["CREDIT_CARD", "Cartão 12x"],
+                ["PIX", "Pix mensal"],
+              ] as const
+            ).map(([valor, label]) => (
+              <button
+                key={valor}
+                onClick={() => setAdesao({ ...adesao, billing_type: valor })}
+                className={`border p-3 text-sm ${
+                  adesao.billing_type === valor ? "border-brand text-fg" : "border-line text-muted-fg"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <Btn
+            full
+            variant="outline"
+            disabled={adesao.cpf_cnpj.replace(/\D/g, "").length < 11 || cobrarAdesao.isPending}
+            onClick={() => cobrarAdesao.mutate()}
+          >
+            {cobrarAdesao.isPending ? "Gerando" : "Gerar cobrança da adesão"}
+          </Btn>
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
