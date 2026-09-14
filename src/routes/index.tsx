@@ -6,14 +6,9 @@ import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
-import {
-  criarLead,
-  getAppConfig,
-  getPublicSenseis,
-  redirectCheckout,
-  type PublicSensei,
-} from "@/lib/app.functions";
-import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
+import { criarLead, getAppConfig, getPublicSenseis, type PublicSensei } from "@/lib/app.functions";
+import { iniciarPagamento } from "@/lib/asaas.functions";
+import { UFS, isEmail, maskCpf, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -66,7 +61,7 @@ function Passo({ n, titulo, children }: { n: string; titulo: string; children: R
 function Triagem() {
   const configFn = useServerFn(getAppConfig);
   const publicSenseisFn = useServerFn(getPublicSenseis);
-  const checkoutFn = useServerFn(redirectCheckout);
+  const pagamentoFn = useServerFn(iniciarPagamento);
   const criarLeadFn = useServerFn(criarLead);
 
   const { data: config } = useQuery({
@@ -94,6 +89,8 @@ function Triagem() {
   const [enviando, setEnviando] = useState(false);
   const [pronto, setPronto] = useState<string | null>(null);
   const [aceite, setAceite] = useState(false);
+  const [cpf, setCpf] = useState("");
+  const [forma, setForma] = useState<"PIX" | "CREDIT_CARD">("PIX");
 
   const inscricoesAbertas = config?.inscricoes_abertas !== false;
   const modoPiloto = config?.modo_piloto !== false;
@@ -146,18 +143,29 @@ function Triagem() {
 
   async function escolherProduto(produto: "mensal" | "avulso") {
     if (!leadId) return;
+    if (cpf.replace(/\D/g, "").length !== 11) {
+      toast.error("Informe o CPF do pagador.");
+      return;
+    }
     setEnviando(true);
     try {
-      const { url } = await checkoutFn({ data: { lead_id: leadId, produto } });
+      const { url, mensagem } = await pagamentoFn({
+        data: { lead_id: leadId, produto, billing_type: forma, cpf },
+      });
       if (!url) {
         setPronto(
-          "Inscrições para este dojô abrem em breve. Seu cadastro foi salvo e avisaremos você no WhatsApp.",
+          mensagem ??
+            "Inscrições para este dojô abrem em breve. Seu cadastro foi salvo e avisaremos você no WhatsApp.",
         );
         return;
       }
       window.location.href = url;
-    } catch {
-      toast.error("Falha ao abrir o pagamento. Tente novamente em instantes.");
+    } catch (e) {
+      toast.error(
+        e instanceof Error && e.message
+          ? e.message
+          : "Falha ao abrir o pagamento. Tente novamente em instantes.",
+      );
     } finally {
       setEnviando(false);
     }
@@ -394,10 +402,41 @@ function Triagem() {
         ) : (
           <Passo n="04" titulo="Como você quer treinar?">
             <div className="space-y-4">
+              <Field label="CPF do pagador">
+                <TextInput
+                  value={cpf}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  onChange={(e) => setCpf(maskCpf(e.target.value))}
+                />
+              </Field>
+              <div>
+                <div className="eyebrow mb-2">Forma de pagamento</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      ["PIX", "Pix"],
+                      ["CREDIT_CARD", "Cartão"],
+                    ] as const
+                  ).map(([valor, rotulo]) => (
+                    <button
+                      key={valor}
+                      onClick={() => setForma(valor)}
+                      className={`display min-h-12 border bg-surface text-sm ${
+                        forma === valor ? "border-brand text-foreground" : "border-line text-muted-fg"
+                      }`}
+                    >
+                      {rotulo}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="border-2 border-brand bg-surface p-6">
                 <div className="eyebrow text-brand">Mensal</div>
                 <div className="fight-number mt-2">R$ 100</div>
-                <p className="mt-2 text-sm text-muted-fg">Todos os sábados do mês.</p>
+                <p className="mt-2 text-sm text-muted-fg">
+                  Todos os sábados do mês, cobrança automática.
+                </p>
                 <Btn full className="mt-5" disabled={enviando} onClick={() => escolherProduto("mensal")}>
                   Quero treinar todo sábado
                 </Btn>
@@ -416,6 +455,12 @@ function Triagem() {
                   Quero experimentar
                 </Btn>
               </div>
+              {forma === "CREDIT_CARD" && (
+                <p className="text-xs text-muted-fg">
+                  No cartão, a cobrança mensal é renovada automaticamente até você pedir o
+                  cancelamento.
+                </p>
+              )}
             </div>
           </Passo>
         )}

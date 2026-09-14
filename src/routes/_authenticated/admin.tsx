@@ -7,7 +7,8 @@ import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
 import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
-import { UFS } from "@/lib/ufs";
+import { criarSubcontaSensei } from "@/lib/asaas.functions";
+import { UFS, maskCep, maskCpf } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -42,6 +43,10 @@ type Sensei = {
   data_adesao: string | null;
   obs: string | null;
   created_at: string | null;
+  asaas_account_id: string | null;
+  asaas_wallet_id: string | null;
+  asaas_status: string | null;
+  adesao_paga: boolean;
 };
 
 type Lead = {
@@ -312,7 +317,38 @@ function PainelSensei({
     obs: sensei.obs ?? "",
   });
 
-  const semLinks = !f.link_afiliado_mensal.trim() || !f.link_afiliado_avulso.trim();
+  const semConta = !sensei.asaas_wallet_id;
+
+  const [conta, setConta] = useState({
+    cpf_cnpj: "",
+    nascimento: "",
+    cep: "",
+    endereco: "",
+    numero: "",
+    bairro: "",
+    faturamento_mensal: "3000",
+  });
+  const criarConta = useMutation({
+    mutationFn: () =>
+      criarSubcontaSensei({
+        data: {
+          sensei_id: sensei.id,
+          cpf_cnpj: conta.cpf_cnpj,
+          nascimento: conta.nascimento,
+          cep: conta.cep,
+          endereco: conta.endereco.trim(),
+          numero: conta.numero.trim(),
+          bairro: conta.bairro.trim(),
+          faturamento_mensal: Number(conta.faturamento_mensal || 0),
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Conta de recebimento criada.");
+      onSave({});
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Não foi possível criar a conta."),
+  });
 
   const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
   const criarAcesso = useMutation({
@@ -423,11 +459,11 @@ function PainelSensei({
           )}
           {sensei.status === "aprovado" && (
             <>
-              <Btn full disabled={semLinks} onClick={() => onSave({ status: "ativo" })}>
+              <Btn full disabled={semConta} onClick={() => onSave({ status: "ativo" })}>
                 Ativar
               </Btn>
-              {semLinks && (
-                <p className="text-xs text-brand">Preencha os dois links de afiliado</p>
+              {semConta && (
+                <p className="text-xs text-brand">Crie a conta de recebimento do sensei</p>
               )}
             </>
           )}
@@ -436,6 +472,76 @@ function PainelSensei({
               Desativar
             </Btn>
           )}
+        </div>
+
+        <div className="mt-8 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Conta de recebimento (repasse automático)</p>
+          {semConta ? (
+            <>
+              <Field label="CPF ou CNPJ">
+                <TextInput
+                  value={conta.cpf_cnpj}
+                  inputMode="numeric"
+                  onChange={(e) => setConta({ ...conta, cpf_cnpj: maskCpf(e.target.value) })}
+                />
+              </Field>
+              <Field label="Data de nascimento">
+                <TextInput
+                  type="date"
+                  value={conta.nascimento}
+                  onChange={(e) => setConta({ ...conta, nascimento: e.target.value })}
+                />
+              </Field>
+              <Field label="CEP">
+                <TextInput
+                  value={conta.cep}
+                  inputMode="numeric"
+                  onChange={(e) => setConta({ ...conta, cep: maskCep(e.target.value) })}
+                />
+              </Field>
+              <Field label="Endereço">
+                <TextInput
+                  value={conta.endereco}
+                  onChange={(e) => setConta({ ...conta, endereco: e.target.value })}
+                />
+              </Field>
+              <Field label="Número">
+                <TextInput
+                  value={conta.numero}
+                  onChange={(e) => setConta({ ...conta, numero: e.target.value })}
+                />
+              </Field>
+              <Field label="Bairro">
+                <TextInput
+                  value={conta.bairro}
+                  onChange={(e) => setConta({ ...conta, bairro: e.target.value })}
+                />
+              </Field>
+              <Field label="Faturamento mensal estimado (R$)">
+                <TextInput
+                  value={conta.faturamento_mensal}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    setConta({ ...conta, faturamento_mensal: e.target.value.replace(/\D/g, "") })
+                  }
+                />
+              </Field>
+              <Btn full disabled={criarConta.isPending} onClick={() => criarConta.mutate()}>
+                {criarConta.isPending ? "Criando" : "Criar conta de recebimento"}
+              </Btn>
+              <p className="text-xs text-muted-fg">
+                Sem essa conta o sensei não recebe o repasse e não pode ser ativado.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-fg">
+              Conta criada. Repasse automático de R$ 80 (mensal) e R$ 20 (avulso) por atleta.
+            </p>
+          )}
+          <div className="flex justify-between gap-4 text-sm">
+            <span className="eyebrow">Adesão paga</span>
+            <span>{sensei.adesao_paga ? "sim" : "não"}</span>
+          </div>
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
@@ -785,9 +891,11 @@ function AbaConfig() {
     );
   };
 
+  const producao = data?.get("asaas_ambiente") === "production";
+
   return (
     <div className="max-w-xl space-y-4">
-      <Field label="Link de pagamento da Adesão Sensei">
+      <Field label="Link de pagamento da Adesão Sensei (Greenn)">
         <TextInput value={valorLink} onChange={(e) => setLink(e.target.value)} />
       </Field>
       <Btn
@@ -798,6 +906,79 @@ function AbaConfig() {
       </Btn>
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
+
+      <div className="mt-8 space-y-4 border-t border-line pt-6">
+        <p className="eyebrow">Pagamentos dos atletas</p>
+        <ValorConfig
+          chave="preco_mensal"
+          label="Preço mensal (R$)"
+          atual={data?.get("preco_mensal") ?? "100"}
+          onSalvar={(valor) => set.mutate({ chave: "preco_mensal", valor })}
+        />
+        <ValorConfig
+          chave="repasse_mensal"
+          label="Repasse ao sensei no mensal (R$)"
+          atual={data?.get("repasse_mensal") ?? "80"}
+          onSalvar={(valor) => set.mutate({ chave: "repasse_mensal", valor })}
+        />
+        <ValorConfig
+          chave="preco_avulso"
+          label="Preço avulso (R$)"
+          atual={data?.get("preco_avulso") ?? "30"}
+          onSalvar={(valor) => set.mutate({ chave: "preco_avulso", valor })}
+        />
+        <ValorConfig
+          chave="repasse_avulso"
+          label="Repasse ao sensei no avulso (R$)"
+          atual={data?.get("repasse_avulso") ?? "20"}
+          onSalvar={(valor) => set.mutate({ chave: "repasse_avulso", valor })}
+        />
+        <div className="flex items-center justify-between border border-line bg-surface p-4">
+          <span className="text-sm">
+            Cobranças reais {producao ? "ligadas" : "desligadas (modo de teste)"}
+          </span>
+          <button
+            onClick={() =>
+              set.mutate({
+                chave: "asaas_ambiente",
+                valor: producao ? "sandbox" : "production",
+              })
+            }
+            className={`h-7 w-12 border ${producao ? "border-brand bg-brand" : "border-line"}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ValorConfig({
+  chave,
+  label,
+  atual,
+  onSalvar,
+}: {
+  chave: string;
+  label: string;
+  atual: string;
+  onSalvar: (valor: string) => void;
+}) {
+  const [v, setV] = useState<string | null>(null);
+  const valor = v ?? atual;
+  return (
+    <div key={chave} className="flex items-end gap-3">
+      <div className="flex-1">
+        <Field label={label}>
+          <TextInput
+            value={valor}
+            inputMode="numeric"
+            onChange={(e) => setV(e.target.value.replace(/[^\d.]/g, ""))}
+          />
+        </Field>
+      </div>
+      <Btn variant="outline" onClick={() => onSalvar(valor.trim())}>
+        Salvar
+      </Btn>
     </div>
   );
 }

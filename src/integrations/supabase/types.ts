@@ -92,6 +92,85 @@ export type Database = {
           },
         ]
       }
+      pagamentos: {
+        Row: {
+          asaas_customer_id: string | null
+          asaas_payment_id: string | null
+          asaas_subscription_id: string | null
+          billing_type: string
+          created_at: string
+          id: string
+          invoice_url: string | null
+          lead_id: string | null
+          payload: Json | null
+          produto: string
+          provedor: string
+          sensei_id: string | null
+          status: string
+          updated_at: string
+          valor_sensei: number
+          valor_total: number
+        }
+        Insert: {
+          asaas_customer_id?: string | null
+          asaas_payment_id?: string | null
+          asaas_subscription_id?: string | null
+          billing_type: string
+          created_at?: string
+          id?: string
+          invoice_url?: string | null
+          lead_id?: string | null
+          payload?: Json | null
+          produto: string
+          provedor?: string
+          sensei_id?: string | null
+          status?: string
+          updated_at?: string
+          valor_sensei: number
+          valor_total: number
+        }
+        Update: {
+          asaas_customer_id?: string | null
+          asaas_payment_id?: string | null
+          asaas_subscription_id?: string | null
+          billing_type?: string
+          created_at?: string
+          id?: string
+          invoice_url?: string | null
+          lead_id?: string | null
+          payload?: Json | null
+          produto?: string
+          provedor?: string
+          sensei_id?: string | null
+          status?: string
+          updated_at?: string
+          valor_sensei?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads_atletas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pagamentos_orfaos: {
         Row: {
           conciliado: boolean | null
@@ -168,6 +247,10 @@ export type Database = {
       }
       senseis: {
         Row: {
+          adesao_paga: boolean
+          asaas_account_id: string | null
+          asaas_status: string | null
+          asaas_wallet_id: string | null
           cidade: string
           created_at: string | null
           data_adesao: string | null
@@ -188,6 +271,10 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          adesao_paga?: boolean
+          asaas_account_id?: string | null
+          asaas_status?: string | null
+          asaas_wallet_id?: string | null
           cidade: string
           created_at?: string | null
           data_adesao?: string | null
@@ -208,6 +295,10 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          adesao_paga?: boolean
+          asaas_account_id?: string | null
+          asaas_status?: string | null
+          asaas_wallet_id?: string | null
           cidade?: string
           created_at?: string | null
           data_adesao?: string | null
@@ -253,25 +344,31 @@ export type Database = {
       webhook_log: {
         Row: {
           created_at: string | null
+          evento_id: string | null
           id: string
           payload: Json
           processado: boolean | null
+          provedor: string
           resultado: string | null
           sale_id: string | null
         }
         Insert: {
           created_at?: string | null
+          evento_id?: string | null
           id?: string
           payload: Json
           processado?: boolean | null
+          provedor?: string
           resultado?: string | null
           sale_id?: string | null
         }
         Update: {
           created_at?: string | null
+          evento_id?: string | null
           id?: string
           payload?: Json
           processado?: boolean | null
+          provedor?: string
           resultado?: string | null
           sale_id?: string | null
         }

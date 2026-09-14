@@ -49,6 +49,7 @@ export const Route = createFileRoute("/api/public/webhooks/greenn")({
             const { data: existing } = await supabaseAdmin
               .from("webhook_log")
               .select("id")
+              .eq("provedor", "greenn")
               .eq("sale_id", saleId)
               .maybeSingle();
             if (existing) return ok({ resultado: "duplicado" });
@@ -60,27 +61,22 @@ export const Route = createFileRoute("/api/public/webhooks/greenn")({
 
           let resultado = "orfao";
 
-          const { data: lead } = email
+          // A Greenn agora cobre apenas a adesão do sensei.
+          const { data: sensei } = email
             ? await supabaseAdmin
-                .from("leads_atletas")
+                .from("senseis")
                 .select("id")
-                .eq("status", "lead")
                 .ilike("email", email)
-                .order("created_at", { ascending: false })
                 .limit(1)
                 .maybeSingle()
             : { data: null };
 
-          if (lead?.id) {
+          if (sensei?.id) {
             await supabaseAdmin
-              .from("leads_atletas")
-              .update({
-                status: "convertido",
-                greenn_sale_id: saleId,
-                convertido_em: new Date().toISOString(),
-              })
-              .eq("id", lead.id);
-            resultado = "matched";
+              .from("senseis")
+              .update({ adesao_paga: true, data_adesao: new Date().toISOString().slice(0, 10) })
+              .eq("id", sensei.id);
+            resultado = "adesao_sensei";
           } else {
             await supabaseAdmin.from("pagamentos_orfaos").insert({
               sale_id: saleId,
@@ -91,6 +87,8 @@ export const Route = createFileRoute("/api/public/webhooks/greenn")({
           }
 
           await supabaseAdmin.from("webhook_log").insert({
+            provedor: "greenn",
+            evento_id: saleId,
             sale_id: saleId,
             payload: payload as never,
             processado: true,
