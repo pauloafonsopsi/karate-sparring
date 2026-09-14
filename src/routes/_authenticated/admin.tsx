@@ -127,6 +127,7 @@ function Admin() {
         <div className="mt-8">
           {aba === "Senseis" && <AbaSenseis />}
           {aba === "Leads" && <AbaLeads />}
+          {aba === "Receita" && <AbaReceita />}
           {aba === "Conciliação" && <AbaConciliacao />}
           {aba === "Config" && <AbaConfig />}
         </div>
