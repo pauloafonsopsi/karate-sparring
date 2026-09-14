@@ -993,6 +993,25 @@ function AbaConfig() {
           atual={data?.get("repasse_avulso") ?? "20"}
           onSalvar={(valor) => set.mutate({ chave: "repasse_avulso", valor })}
         />
+        <p className="eyebrow pt-4">Adesão do sensei</p>
+        <ValorConfig
+          chave="adesao_total"
+          label="Valor total da adesão (R$)"
+          atual={data?.get("adesao_total") ?? "1800"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_total", valor })}
+        />
+        <ValorConfig
+          chave="adesao_parcela"
+          label="Valor da parcela (R$)"
+          atual={data?.get("adesao_parcela") ?? "150"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_parcela", valor })}
+        />
+        <ValorConfig
+          chave="adesao_parcelas"
+          label="Número de parcelas"
+          atual={data?.get("adesao_parcelas") ?? "12"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_parcelas", valor })}
+        />
         <div className="flex items-center justify-between border border-line bg-surface p-4">
           <span className="text-sm">
             Cobranças reais {producao ? "ligadas" : "desligadas (modo de teste)"}
