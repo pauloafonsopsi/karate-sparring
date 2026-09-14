@@ -235,3 +235,122 @@ export const criarSubcontaSensei = createServerFn({ method: "POST" })
 
     return { wallet_id: conta.walletId };
   });
+
+/* ---------------- ADESÃO DO SENSEI (Asaas) ---------------- */
+
+const adesaoInput = z.object({
+  sensei_id: z.string().uuid(),
+  cpf_cnpj: z.string().trim().min(11).max(18),
+  billing_type: z.enum(["PIX", "CREDIT_CARD"]),
+});
+
+export const criarCobrancaAdesao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => adesaoInput.parse(data))
+  .handler(async ({ data, context }): Promise<{ url: string }> => {
+    const { data: admin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!admin) throw new Error("Apenas administradores podem cobrar a adesão.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { asaasFetch, onlyDigits, proximoVencimento } = await import("./asaas.server");
+
+    const cfg = await lerConfig();
+    const env = cfg.ambiente;
+
+    const { data: sensei } = await supabaseAdmin
+      .from("senseis")
+      .select("id, nome, email, whatsapp")
+      .eq("id", data.sensei_id)
+      .maybeSingle();
+    if (!sensei) throw new Error("Sensei não encontrado.");
+
+    const cliente = await asaasFetch<{ id: string }>(env, "/customers", {
+      method: "POST",
+      body: {
+        name: sensei.nome,
+        email: sensei.email,
+        mobilePhone: onlyDigits(sensei.whatsapp),
+        cpfCnpj: onlyDigits(data.cpf_cnpj),
+        externalReference: `sensei:${sensei.id}`,
+        notificationDisabled: false,
+      },
+    });
+
+    const descricao = `Karate Sparring · adesão sensei · ${sensei.nome}`;
+    const primeiro = proximoVencimento(3);
+
+    let paymentId: string | null = null;
+    let subscriptionId: string | null = null;
+    let invoiceUrl = "";
+    let bruto: unknown = null;
+
+    if (data.billing_type === "CREDIT_CARD") {
+      const pag = await asaasFetch<{ id: string; invoiceUrl?: string }>(env, "/payments", {
+        method: "POST",
+        body: {
+          customer: cliente.id,
+          billingType: "CREDIT_CARD",
+          installmentCount: cfg.adesao_parcelas,
+          installmentValue: cfg.adesao_parcela,
+          dueDate: primeiro,
+          description: descricao,
+          externalReference: `sensei:${sensei.id}`,
+        },
+      });
+      paymentId = pag.id;
+      invoiceUrl = pag.invoiceUrl ?? "";
+      bruto = pag;
+    } else {
+      const fim = new Date(primeiro);
+      fim.setMonth(fim.getMonth() + (cfg.adesao_parcelas - 1));
+      const sub = await asaasFetch<{ id: string }>(env, "/subscriptions", {
+        method: "POST",
+        body: {
+          customer: cliente.id,
+          billingType: "PIX",
+          value: cfg.adesao_parcela,
+          nextDueDate: primeiro,
+          endDate: fim.toISOString().slice(0, 10),
+          cycle: "MONTHLY",
+          description: descricao,
+          externalReference: `sensei:${sensei.id}`,
+        },
+      });
+      subscriptionId = sub.id;
+      bruto = sub;
+      const cobrancas = await asaasFetch<{ data?: { id: string; invoiceUrl?: string }[] }>(
+        env,
+        `/subscriptions/${sub.id}/payments`,
+      );
+      const primeira = cobrancas.data?.[0];
+      paymentId = primeira?.id ?? null;
+      invoiceUrl = primeira?.invoiceUrl ?? "";
+    }
+
+    await supabaseAdmin.from("pagamentos").insert({
+      lead_id: null,
+      sensei_id: sensei.id,
+      produto: "adesao",
+      provedor: "asaas",
+      asaas_customer_id: cliente.id,
+      asaas_payment_id: paymentId,
+      asaas_subscription_id: subscriptionId,
+      valor_total: cfg.adesao_total,
+      valor_sensei: 0,
+      billing_type: data.billing_type,
+      status: "pendente",
+      invoice_url: invoiceUrl || null,
+      payload: bruto as never,
+    });
+
+    await supabaseAdmin
+      .from("senseis")
+      .update({ adesao_invoice_url: invoiceUrl || null, adesao_asaas_id: subscriptionId ?? paymentId })
+      .eq("id", sensei.id);
+
+    if (!invoiceUrl) throw new Error("Cobrança criada, mas o Asaas não retornou o link.");
+    return { url: invoiceUrl };
+  });
