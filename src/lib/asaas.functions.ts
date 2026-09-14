@@ -24,6 +24,9 @@ async function lerConfig() {
     preco_avulso: num("preco_avulso", 30),
     repasse_mensal: num("repasse_mensal", 80),
     repasse_avulso: num("repasse_avulso", 20),
+    adesao_total: num("adesao_total", 1800),
+    adesao_parcela: num("adesao_parcela", 150),
+    adesao_parcelas: Math.round(num("adesao_parcelas", 12)),
   } as const;
 }
 
