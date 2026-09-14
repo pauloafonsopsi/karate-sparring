@@ -6,14 +6,9 @@ import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
-import {
-  criarLead,
-  getAppConfig,
-  getPublicSenseis,
-  redirectCheckout,
-  type PublicSensei,
-} from "@/lib/app.functions";
-import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
+import { criarLead, getAppConfig, getPublicSenseis, type PublicSensei } from "@/lib/app.functions";
+import { iniciarPagamento } from "@/lib/asaas.functions";
+import { UFS, isEmail, maskCpf, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
   head: () => ({
