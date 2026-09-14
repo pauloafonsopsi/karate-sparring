@@ -89,16 +89,25 @@ function PaginaAdesao() {
   });
 
   function validarEEnviar(): void {
-    if (form.nome.trim().length < 3) return toast.error("Informe seu nome completo.");
-    if (!form.dojo.trim() || !form.cidade.trim() || !form.uf) {
-      toast.error("Informe dojô, cidade e estado.");
-    if (form.whatsapp.replace(/\D/g, "").length < 10) {
-      toast.error("Informe um WhatsApp válido.");
-    if (!isEmail(form.email)) return toast.error("Informe um email válido.");
     const doc = form.cpf_cnpj.replace(/\D/g, "");
-    if (doc.length !== 11 && doc.length !== 14) {
-      toast.error("Informe um CPF ou CNPJ válido.");
-    if (!aceite) return toast.error("É necessário aceitar os termos.");
+    const erro =
+      form.nome.trim().length < 3
+        ? "Informe seu nome completo."
+        : !form.dojo.trim() || !form.cidade.trim() || !form.uf
+          ? "Informe dojô, cidade e estado."
+          : form.whatsapp.replace(/\D/g, "").length < 10
+            ? "Informe um WhatsApp válido."
+            : !isEmail(form.email)
+              ? "Informe um email válido."
+              : doc.length !== 11 && doc.length !== 14
+                ? "Informe um CPF ou CNPJ válido."
+                : !aceite
+                  ? "É necessário aceitar os termos."
+                  : null;
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     enviar.mutate();
   }
 
