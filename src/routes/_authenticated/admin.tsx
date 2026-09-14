@@ -343,6 +343,14 @@ function PainelSensei({
           </Btn>
         </div>
 
+        {wa && (
+          <a href={wa} target="_blank" rel="noopener noreferrer" className="mt-4 block">
+            <Btn full variant="outline">
+              Falar no WhatsApp
+            </Btn>
+          </a>
+        )}
+
         <dl className="mt-6 space-y-2 border-y border-line py-4 text-sm">
           {[
             ["Status", sensei.status],
@@ -428,6 +436,35 @@ function PainelSensei({
               Desativar
             </Btn>
           )}
+        </div>
+
+        <div className="mt-8 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Acesso do sensei ao painel de leads</p>
+          <Field label="Email de acesso">
+            <TextInput
+              type="email"
+              value={acesso.email}
+              onChange={(e) => setAcesso({ ...acesso, email: e.target.value })}
+            />
+          </Field>
+          <Field label="Senha inicial (mínimo 8 caracteres)">
+            <TextInput
+              type="text"
+              value={acesso.senha}
+              onChange={(e) => setAcesso({ ...acesso, senha: e.target.value })}
+            />
+          </Field>
+          <Btn
+            full
+            variant="outline"
+            disabled={acesso.senha.trim().length < 8 || criarAcesso.isPending}
+            onClick={() => criarAcesso.mutate()}
+          >
+            {criarAcesso.isPending ? "Criando" : "Criar acesso"}
+          </Btn>
+          <p className="text-xs text-muted-fg">
+            O sensei entra em /auth com esses dados e vê apenas os leads do dojô dele.
+          </p>
         </div>
       </aside>
     </div>
