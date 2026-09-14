@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
-import { getAppConfig, redirectCheckout } from "@/lib/app.functions";
+import { criarLead, getAppConfig, redirectCheckout } from "@/lib/app.functions";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
@@ -52,6 +52,7 @@ function Passo({ n, titulo, children }: { n: string; titulo: string; children: R
 function Triagem() {
   const configFn = useServerFn(getAppConfig);
   const checkoutFn = useServerFn(redirectCheckout);
+  const criarLeadFn = useServerFn(criarLead);
 
   const { data: config } = useQuery({
     queryKey: ["config"],
@@ -103,23 +104,19 @@ function Triagem() {
     return null;
   }
 
-  async function salvarLead(produto: "mensal" | "avulso" | null, senseiId: string | null) {
-    const { data, error } = await supabase
-      .from("leads_atletas")
-      .insert({
+  async function salvarLead(senseiId: string | null) {
+    const { id } = await criarLeadFn({
+      data: {
         nome: dados.nome.trim(),
         whatsapp: dados.whatsapp,
         email: dados.email.trim().toLowerCase(),
         cidade: dados.cidade.trim() || null,
         uf: senseiId ? uf : dados.uf,
         sensei_id: senseiId,
-        produto_escolhido: produto,
-        aceite_lgpd: true,
-      })
-      .select("id")
-      .single();
-    if (error) throw error;
-    return data.id as string;
+        aceite_lgpd: true as const,
+      },
+    });
+    return id;
   }
 
   async function continuarCadastro() {
@@ -130,7 +127,7 @@ function Triagem() {
     }
     setEnviando(true);
     try {
-      const id = leadId ?? (await salvarLead(null, sensei?.id ?? null));
+      const id = leadId ?? (await salvarLead(sensei?.id ?? null));
       setLeadId(id);
       setStep(4);
     } catch {
@@ -167,7 +164,7 @@ function Triagem() {
     }
     setEnviando(true);
     try {
-      await salvarLead(null, null);
+      await salvarLead(null);
       setPronto("Você será o primeiro a saber quando o Karate Sparring chegar ao seu estado.");
     } catch {
       toast.error("Não conseguimos salvar seus dados. Verifique a conexão e tente de novo.");

@@ -49,3 +49,34 @@ export const redirectCheckout = createServerFn({ method: "POST" })
 
     return { url: url.trim() };
   });
+
+const leadInput = z.object({
+  nome: z.string().trim().min(3).max(120),
+  whatsapp: z.string().trim().min(10).max(20),
+  email: z.string().trim().email().max(160),
+  cidade: z.string().trim().max(120).optional().nullable(),
+  uf: z.string().trim().length(2),
+  sensei_id: z.string().uuid().nullable(),
+  aceite_lgpd: z.literal(true),
+});
+
+export const criarLead = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => leadInput.parse(data))
+  .handler(async ({ data }): Promise<{ id: string }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: lead, error } = await supabaseAdmin
+      .from("leads_atletas")
+      .insert({
+        nome: data.nome,
+        whatsapp: data.whatsapp,
+        email: data.email.toLowerCase(),
+        cidade: data.cidade?.trim() || null,
+        uf: data.uf.toUpperCase(),
+        sensei_id: data.sensei_id,
+        aceite_lgpd: true,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: lead.id };
+  });
