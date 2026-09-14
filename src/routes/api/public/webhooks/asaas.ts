@@ -119,6 +119,19 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
             return ok({ resultado: "orfao" });
           }
 
+          // Adesão do sensei: 12x de R$ 150 cobradas pelo Asaas.
+          if (novoStatus === "confirmado" && alvo.produto === "adesao" && alvo.sensei_id) {
+            await supabaseAdmin
+              .from("senseis")
+              .update({
+                adesao_paga: true,
+                data_adesao: new Date().toISOString().slice(0, 10),
+              })
+              .eq("id", alvo.sensei_id);
+            await registrar("adesao_sensei");
+            return ok({ resultado: "adesao_sensei" });
+          }
+
           if (novoStatus === "confirmado" && alvo.lead_id) {
             await supabaseAdmin
               .from("leads_atletas")
