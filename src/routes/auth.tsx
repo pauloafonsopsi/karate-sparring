@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Wordmark } from "@/components/brand";
 import { Btn, Field, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
+import { getMeuAcesso } from "@/lib/acesso.functions";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -34,7 +35,12 @@ function Auth() {
       toast.error("Email ou senha inválidos.");
       return;
     }
-    navigate({ to: "/admin", replace: true });
+    try {
+      const acesso = await getMeuAcesso();
+      navigate({ to: acesso.admin ? "/admin" : "/admin/dojos", replace: true });
+    } catch {
+      navigate({ to: "/admin/dojos", replace: true });
+    }
   }
 
   return (

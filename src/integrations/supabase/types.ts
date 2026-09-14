@@ -133,6 +133,39 @@ export type Database = {
           },
         ]
       }
+      sensei_users: {
+        Row: {
+          created_at: string
+          sensei_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          sensei_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          sensei_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sensei_users_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensei_users_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       senseis: {
         Row: {
           cidade: string
@@ -193,6 +226,27 @@ export type Database = {
           tempo_ensino?: string | null
           uf?: string
           whatsapp?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -260,10 +314,17 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      current_sensei_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "sensei"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -390,6 +451,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "sensei"],
+    },
   },
 } as const

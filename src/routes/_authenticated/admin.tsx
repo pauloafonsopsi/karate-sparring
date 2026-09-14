@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
+import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
 import { UFS } from "@/lib/ufs";
+import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -74,6 +76,11 @@ function Admin() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Senseis");
+  const { data: acesso } = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso() });
+
+  useEffect(() => {
+    if (acesso && !acesso.admin) void navigate({ to: "/admin/dojos", replace: true });
+  }, [acesso, navigate]);
 
   async function sair() {
     await qc.cancelQueries();
@@ -137,6 +144,26 @@ function AbaSenseis() {
     },
   });
 
+  const { data: leadsResumo } = useQuery({
+    queryKey: ["admin-leads-resumo"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads_atletas")
+        .select("id, sensei_id, status");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const contar = (senseiId: string) => {
+    const ls = (leadsResumo ?? []).filter((l) => l.sensei_id === senseiId);
+    return {
+      total: ls.length,
+      convertidos: ls.filter((l) => l.status === "convertido").length,
+      orfaos: ls.filter((l) => l.status === "orfao_conciliado").length,
+    };
+  };
+
   const salvar = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Sensei> }) => {
       const { error } = await supabase.from("senseis").update(patch).eq("id", id);
@@ -185,7 +212,18 @@ function AbaSenseis() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line bg-surface text-left">
-              {["Nome", "Dojô", "Cidade/UF", "Status", "Piloto", "Aplicou em"].map((h) => (
+              {[
+                "Nome",
+                "Dojô",
+                "Cidade/UF",
+                "Status",
+                "Piloto",
+                "Leads",
+                "Convertidos",
+                "Órfãos",
+                "Aplicou em",
+                "Contato",
+              ].map((h) => (
                 <th key={h} className="eyebrow p-3">
                   {h}
                 </th>
@@ -216,12 +254,28 @@ function AbaSenseis() {
                     className={`h-6 w-11 border ${s.piloto ? "border-brand bg-brand" : "border-line"}`}
                   />
                 </td>
+                <td className="p-3 font-semibold">{contar(s.id).total}</td>
+                <td className="p-3 font-semibold text-brand">{contar(s.id).convertidos}</td>
+                <td className="p-3 text-muted-fg">{contar(s.id).orfaos}</td>
                 <td className="p-3 text-muted-fg">{dataBr(s.created_at)}</td>
+                <td className="p-3">
+                  {whatsappLink(s.whatsapp) && (
+                    <a
+                      href={whatsappLink(s.whatsapp)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="eyebrow border border-line px-3 py-2 hover:border-foreground/40"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                </td>
               </tr>
             ))}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-fg">
+                <td colSpan={10} className="p-6 text-center text-muted-fg">
                   Nenhum sensei encontrado.
                 </td>
               </tr>
@@ -260,6 +314,20 @@ function PainelSensei({
 
   const semLinks = !f.link_afiliado_mensal.trim() || !f.link_afiliado_avulso.trim();
 
+  const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
+  const criarAcesso = useMutation({
+    mutationFn: () =>
+      criarAcessoSensei({
+        data: { sensei_id: sensei.id, email: acesso.email.trim(), senha: acesso.senha },
+      }),
+    onSuccess: () => {
+      setAcesso((a) => ({ ...a, senha: "" }));
+      toast.success("Acesso do sensei criado.");
+    },
+    onError: () => toast.error("Não foi possível criar o acesso."),
+  });
+  const wa = whatsappLink(sensei.whatsapp);
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-background/80">
       <aside className="h-full w-full max-w-md overflow-y-auto border-l border-line bg-surface p-6">
@@ -274,6 +342,14 @@ function PainelSensei({
             Fechar
           </Btn>
         </div>
+
+        {wa && (
+          <a href={wa} target="_blank" rel="noopener noreferrer" className="mt-4 block">
+            <Btn full variant="outline">
+              Falar no WhatsApp
+            </Btn>
+          </a>
+        )}
 
         <dl className="mt-6 space-y-2 border-y border-line py-4 text-sm">
           {[
@@ -360,6 +436,35 @@ function PainelSensei({
               Desativar
             </Btn>
           )}
+        </div>
+
+        <div className="mt-8 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Acesso do sensei ao painel de leads</p>
+          <Field label="Email de acesso">
+            <TextInput
+              type="email"
+              value={acesso.email}
+              onChange={(e) => setAcesso({ ...acesso, email: e.target.value })}
+            />
+          </Field>
+          <Field label="Senha inicial (mínimo 8 caracteres)">
+            <TextInput
+              type="text"
+              value={acesso.senha}
+              onChange={(e) => setAcesso({ ...acesso, senha: e.target.value })}
+            />
+          </Field>
+          <Btn
+            full
+            variant="outline"
+            disabled={acesso.senha.trim().length < 8 || criarAcesso.isPending}
+            onClick={() => criarAcesso.mutate()}
+          >
+            {criarAcesso.isPending ? "Criando" : "Criar acesso"}
+          </Btn>
+          <p className="text-xs text-muted-fg">
+            O sensei entra em /auth com esses dados e vê apenas os leads do dojô dele.
+          </p>
         </div>
       </aside>
     </div>
