@@ -16,6 +16,7 @@ import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as SenseiRouteImport } from './routes/sensei'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminDojosRouteImport } from './routes/_authenticated/admin_.dojos'
+import { Route as ApiPublicWebhooksAsaasRouteImport } from './routes/api/public/webhooks/asaas'
 import { Route as ApiPublicWebhooksGreennRouteImport } from './routes/api/public/webhooks/greenn'
 
 const IndexRoute = IndexRouteImport.update({
@@ -52,6 +53,11 @@ const AuthenticatedAdminDojosRoute = AuthenticatedAdminDojosRouteImport.update({
   path: '/admin/dojos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicWebhooksAsaasRoute = ApiPublicWebhooksAsaasRouteImport.update({
+  id: '/api/public/webhooks/asaas',
+  path: '/api/public/webhooks/asaas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWebhooksGreennRoute = ApiPublicWebhooksGreennRouteImport.update({
   id: '/api/public/webhooks/greenn',
   path: '/api/public/webhooks/greenn',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin/dojos': typeof AuthenticatedAdminDojosRoute
+  '/api/public/webhooks/asaas': typeof ApiPublicWebhooksAsaasRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesByTo {
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin/dojos': typeof AuthenticatedAdminDojosRoute
+  '/api/public/webhooks/asaas': typeof ApiPublicWebhooksAsaasRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesById {
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/sensei': typeof SenseiRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/admin_/dojos': typeof AuthenticatedAdminDojosRoute
+  '/api/public/webhooks/asaas': typeof ApiPublicWebhooksAsaasRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRouteTypes {
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/sensei'
     | '/admin'
     | '/admin/dojos'
+    | '/api/public/webhooks/asaas'
     | '/api/public/webhooks/greenn'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/sensei'
     | '/admin'
     | '/admin/dojos'
+    | '/api/public/webhooks/asaas'
     | '/api/public/webhooks/greenn'
   id:
     | '__root__'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/sensei'
     | '/_authenticated/admin'
     | '/_authenticated/admin_/dojos'
+    | '/api/public/webhooks/asaas'
     | '/api/public/webhooks/greenn'
   fileRoutesById: FileRoutesById
 }
@@ -124,6 +136,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConfirmadoRoute: typeof ConfirmadoRoute
   SenseiRoute: typeof SenseiRoute
+  ApiPublicWebhooksAsaasRoute: typeof ApiPublicWebhooksAsaasRoute
   ApiPublicWebhooksGreennRoute: typeof ApiPublicWebhooksGreennRoute
 }
 
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDojosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/webhooks/asaas': {
+      id: '/api/public/webhooks/asaas'
+      path: '/api/public/webhooks/asaas'
+      fullPath: '/api/public/webhooks/asaas'
+      preLoaderRoute: typeof ApiPublicWebhooksAsaasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/greenn': {
       id: '/api/public/webhooks/greenn'
       path: '/api/public/webhooks/greenn'
@@ -207,6 +227,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ConfirmadoRoute: ConfirmadoRoute,
   SenseiRoute: SenseiRoute,
+  ApiPublicWebhooksAsaasRoute: ApiPublicWebhooksAsaasRoute,
   ApiPublicWebhooksGreennRoute: ApiPublicWebhooksGreennRoute,
 }
 export const routeTree = rootRouteImport
