@@ -11,6 +11,24 @@ import { criarLead, getAppConfig, redirectCheckout } from "@/lib/app.functions";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Karate Sparring · by Legends" },
+      {
+        name: "description",
+        content:
+          "Treinos de sparring de karatê todos os sábados, com senseis licenciados em todo o Brasil.",
+      },
+      { property: "og:title", content: "Karate Sparring · by Legends" },
+      {
+        property: "og:description",
+        content:
+          "Treinos de sparring de karatê todos os sábados, com senseis licenciados em todo o Brasil.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Triagem,
 });
 
