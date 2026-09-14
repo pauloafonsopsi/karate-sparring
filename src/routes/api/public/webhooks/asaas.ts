@@ -94,7 +94,7 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
             const subId = String(pagamento["subscription"]);
             const { data: assinatura } = await supabaseAdmin
               .from("pagamentos")
-              .select("id, lead_id")
+              .select("id, lead_id, produto, sensei_id")
               .eq("asaas_subscription_id", subId)
               .order("created_at", { ascending: false })
               .limit(1)
