@@ -570,7 +570,7 @@ function PainelSensei({
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
-          <p className="eyebrow">Adesão do sensei · R$ 1.800 em 12x de R$ 150</p>
+          <p className="eyebrow">Adesão do sensei · 12x R$ 150 no cartão ou 12x R$ 200 no Pix</p>
           <div className="flex justify-between gap-4 text-sm">
             <span className="text-muted-fg">Adesão paga</span>
             <span>{sensei.adesao_paga ? "sim" : "não"}</span>
@@ -1069,6 +1069,153 @@ function ValorConfig({
       <Btn variant="outline" onClick={() => onSalvar(valor.trim())}>
         Salvar
       </Btn>
+    </div>
+  );
+}
+
+/* ---------------- RECEITA ---------------- */
+
+type LinhaReceita = {
+  sensei_id: string | null;
+  nome: string;
+  mensal: number;
+  avulso: number;
+  adesao: number;
+  repasse: number;
+};
+
+function AbaReceita() {
+  const [somenteConfirmados, setSomenteConfirmados] = useState(true);
+
+  const { data: senseis } = useQuery({
+    queryKey: ["receita-senseis"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("senseis").select("id, nome").order("nome");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: pagamentos } = useQuery({
+    queryKey: ["receita-pagamentos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pagamentos")
+        .select("sensei_id, produto, valor_total, valor_sensei, status");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const nomes = new Map((senseis ?? []).map((s) => [s.id, s.nome]));
+  const linhas = new Map<string, LinhaReceita>();
+  const total = { mensal: 0, avulso: 0, adesao: 0, repasse: 0 };
+
+  for (const p of pagamentos ?? []) {
+    if (somenteConfirmados && p.status !== "confirmado") continue;
+    const chave = p.sensei_id ?? "sem-sensei";
+    const linha: LinhaReceita = linhas.get(chave) ?? {
+      sensei_id: p.sensei_id,
+      nome: (p.sensei_id && nomes.get(p.sensei_id)) || "Sem sensei",
+      mensal: 0,
+      avulso: 0,
+      adesao: 0,
+      repasse: 0,
+    };
+
+    const valor = Number(p.valor_total ?? 0);
+    const repasse = Number(p.valor_sensei ?? 0);
+    if (p.produto === "mensal") {
+      linha.mensal += valor;
+      total.mensal += valor;
+    } else if (p.produto === "avulso") {
+      linha.avulso += valor;
+      total.avulso += valor;
+    } else if (p.produto === "adesao") {
+      linha.adesao += valor;
+      total.adesao += valor;
+    }
+    linha.repasse += repasse;
+    total.repasse += repasse;
+    linhas.set(chave, linha);
+  }
+
+  const lista = [...linhas.values()].sort(
+    (a, b) => b.mensal + b.avulso + b.adesao - (a.mensal + a.avulso + a.adesao),
+  );
+  const bruto = total.mensal + total.avulso + total.adesao;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4 border border-line bg-surface p-4">
+        <span className="text-sm">
+          {somenteConfirmados ? "Somente pagamentos confirmados" : "Todos os pagamentos gerados"}
+        </span>
+        <button
+          onClick={() => setSomenteConfirmados((v) => !v)}
+          className={`h-7 w-12 border ${somenteConfirmados ? "border-brand bg-brand" : "border-line"}`}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {(
+          [
+            ["Mensalidades", total.mensal],
+            ["Avulsos", total.avulso],
+            ["Adesões anuais", total.adesao],
+            ["Total bruto", bruto],
+          ] as [string, number][]
+        ).map(([label, v]) => (
+          <div key={label} className="border border-line bg-surface p-5">
+            <p className="eyebrow">{label}</p>
+            <p className="mt-3 text-2xl">{reais(v)}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="border border-line bg-surface p-5">
+          <p className="eyebrow">Repasse aos senseis</p>
+          <p className="mt-3 text-2xl">{reais(total.repasse)}</p>
+        </div>
+        <div className="border border-line bg-surface p-5">
+          <p className="eyebrow">Receita líquida da organização</p>
+          <p className="mt-3 text-2xl text-brand">{reais(bruto - total.repasse)}</p>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto border border-line">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-line text-left">
+              {["Sensei", "Mensal", "Avulso", "Adesão", "Repasse", "Total"].map((h) => (
+                <th key={h} className="eyebrow px-4 py-3">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {lista.map((l) => (
+              <tr key={l.sensei_id ?? "sem-sensei"} className="border-b border-line last:border-0">
+                <td className="px-4 py-3">{l.nome}</td>
+                <td className="px-4 py-3">{reais(l.mensal)}</td>
+                <td className="px-4 py-3">{reais(l.avulso)}</td>
+                <td className="px-4 py-3">{reais(l.adesao)}</td>
+                <td className="px-4 py-3 text-muted-fg">{reais(l.repasse)}</td>
+                <td className="px-4 py-3">{reais(l.mensal + l.avulso + l.adesao)}</td>
+              </tr>
+            ))}
+            {lista.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-fg">
+                  Nenhum pagamento registrado ainda.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
