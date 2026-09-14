@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useServerFn } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -123,7 +124,10 @@ function Triagem() {
 
   async function continuarCadastro() {
     const erro = validarDados(false);
-    if (erro) return toast.error(erro);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     setEnviando(true);
     try {
       const id = leadId ?? (await salvarLead(null, sensei?.id ?? null));
@@ -157,7 +161,10 @@ function Triagem() {
 
   async function enviarEspera() {
     const erro = validarDados(true);
-    if (erro) return toast.error(erro);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
     setEnviando(true);
     try {
       await salvarLead(null, null);
