@@ -277,6 +277,9 @@ function PaginaAdesao() {
           <Link to="/sensei" className="eyebrow hover:text-foreground">
             ← Conhecer o programa
           </Link>
+          <Link to="/minha-adesao" className="eyebrow hover:text-foreground">
+            Status da minha adesão
+          </Link>
           <Link to="/" className="eyebrow hover:text-foreground">
             Sou atleta
           </Link>
