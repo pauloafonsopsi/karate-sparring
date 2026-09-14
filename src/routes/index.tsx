@@ -394,10 +394,41 @@ function Triagem() {
         ) : (
           <Passo n="04" titulo="Como você quer treinar?">
             <div className="space-y-4">
+              <Field label="CPF do pagador">
+                <TextInput
+                  value={cpf}
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  onChange={(e) => setCpf(maskCpf(e.target.value))}
+                />
+              </Field>
+              <div>
+                <div className="eyebrow mb-2">Forma de pagamento</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      ["PIX", "Pix"],
+                      ["CREDIT_CARD", "Cartão"],
+                    ] as const
+                  ).map(([valor, rotulo]) => (
+                    <button
+                      key={valor}
+                      onClick={() => setForma(valor)}
+                      className={`display min-h-12 border bg-surface text-sm ${
+                        forma === valor ? "border-brand text-foreground" : "border-line text-muted-fg"
+                      }`}
+                    >
+                      {rotulo}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="border-2 border-brand bg-surface p-6">
                 <div className="eyebrow text-brand">Mensal</div>
                 <div className="fight-number mt-2">R$ 100</div>
-                <p className="mt-2 text-sm text-muted-fg">Todos os sábados do mês.</p>
+                <p className="mt-2 text-sm text-muted-fg">
+                  Todos os sábados do mês, cobrança automática.
+                </p>
                 <Btn full className="mt-5" disabled={enviando} onClick={() => escolherProduto("mensal")}>
                   Quero treinar todo sábado
                 </Btn>
@@ -416,6 +447,12 @@ function Triagem() {
                   Quero experimentar
                 </Btn>
               </div>
+              {forma === "CREDIT_CARD" && (
+                <p className="text-xs text-muted-fg">
+                  No cartão, a cobrança mensal é renovada automaticamente até você pedir o
+                  cancelamento.
+                </p>
+              )}
             </div>
           </Passo>
         )}
