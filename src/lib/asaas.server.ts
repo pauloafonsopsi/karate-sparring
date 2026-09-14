@@ -14,7 +14,14 @@ export async function asaasFetch<T>(
   const key = process.env["ASAAS_API_KEY"];
   if (!key) throw new Error("Pagamentos ainda não estão configurados. Fale com a organização.");
 
-  const res = await fetch(`${baseUrl(env)}${path}`, {
+  // A chave define o ambiente real: chaves de produção nunca funcionam no sandbox.
+  const envReal: AsaasEnv = key.includes("_prod_")
+    ? "production"
+    : key.includes("_hmlg_")
+      ? "sandbox"
+      : env;
+
+  const res = await fetch(`${baseUrl(envReal)}${path}`, {
     method: init?.method ?? "GET",
     headers: {
       "content-type": "application/json",
