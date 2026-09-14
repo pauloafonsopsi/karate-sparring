@@ -10,13 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as SenseiRouteImport } from './routes/sensei'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicWebhooksGreennRouteImport } from './routes/api/public/webhooks/greenn'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfirmadoRoute = ConfirmadoRouteImport.update({
@@ -29,6 +41,11 @@ const SenseiRoute = SenseiRouteImport.update({
   path: '/sensei',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicWebhooksGreennRoute = ApiPublicWebhooksGreennRouteImport.update({
   id: '/api/public/webhooks/greenn',
   path: '/api/public/webhooks/greenn',
@@ -37,34 +54,62 @@ const ApiPublicWebhooksGreennRoute = ApiPublicWebhooksGreennRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/confirmado' | '/sensei' | '/api/public/webhooks/greenn'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/confirmado'
+    | '/sensei'
+    | '/admin'
+    | '/api/public/webhooks/greenn'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/confirmado' | '/sensei' | '/api/public/webhooks/greenn'
+  to:
+    | '/'
+    | '/auth'
+    | '/confirmado'
+    | '/sensei'
+    | '/admin'
+    | '/api/public/webhooks/greenn'
   id:
-    '__root__' | '/' | '/confirmado' | '/sensei' | '/api/public/webhooks/greenn'
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/confirmado'
+    | '/sensei'
+    | '/_authenticated/admin'
+    | '/api/public/webhooks/greenn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ConfirmadoRoute: typeof ConfirmadoRoute
   SenseiRoute: typeof SenseiRoute
   ApiPublicWebhooksGreennRoute: typeof ApiPublicWebhooksGreennRoute
@@ -77,6 +122,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/confirmado': {
@@ -93,6 +152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SenseiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/webhooks/greenn': {
       id: '/api/public/webhooks/greenn'
       path: '/api/public/webhooks/greenn'
@@ -103,8 +169,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   ConfirmadoRoute: ConfirmadoRoute,
   SenseiRoute: SenseiRoute,
   ApiPublicWebhooksGreennRoute: ApiPublicWebhooksGreennRoute,
