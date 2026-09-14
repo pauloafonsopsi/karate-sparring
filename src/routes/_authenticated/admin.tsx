@@ -459,11 +459,11 @@ function PainelSensei({
           )}
           {sensei.status === "aprovado" && (
             <>
-              <Btn full disabled={semLinks} onClick={() => onSave({ status: "ativo" })}>
+              <Btn full disabled={semConta} onClick={() => onSave({ status: "ativo" })}>
                 Ativar
               </Btn>
-              {semLinks && (
-                <p className="text-xs text-brand">Preencha os dois links de afiliado</p>
+              {semConta && (
+                <p className="text-xs text-brand">Crie a conta de recebimento do sensei</p>
               )}
             </>
           )}
@@ -472,6 +472,76 @@ function PainelSensei({
               Desativar
             </Btn>
           )}
+        </div>
+
+        <div className="mt-8 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Conta de recebimento (repasse automático)</p>
+          {semConta ? (
+            <>
+              <Field label="CPF ou CNPJ">
+                <TextInput
+                  value={conta.cpf_cnpj}
+                  inputMode="numeric"
+                  onChange={(e) => setConta({ ...conta, cpf_cnpj: maskCpf(e.target.value) })}
+                />
+              </Field>
+              <Field label="Data de nascimento">
+                <TextInput
+                  type="date"
+                  value={conta.nascimento}
+                  onChange={(e) => setConta({ ...conta, nascimento: e.target.value })}
+                />
+              </Field>
+              <Field label="CEP">
+                <TextInput
+                  value={conta.cep}
+                  inputMode="numeric"
+                  onChange={(e) => setConta({ ...conta, cep: maskCep(e.target.value) })}
+                />
+              </Field>
+              <Field label="Endereço">
+                <TextInput
+                  value={conta.endereco}
+                  onChange={(e) => setConta({ ...conta, endereco: e.target.value })}
+                />
+              </Field>
+              <Field label="Número">
+                <TextInput
+                  value={conta.numero}
+                  onChange={(e) => setConta({ ...conta, numero: e.target.value })}
+                />
+              </Field>
+              <Field label="Bairro">
+                <TextInput
+                  value={conta.bairro}
+                  onChange={(e) => setConta({ ...conta, bairro: e.target.value })}
+                />
+              </Field>
+              <Field label="Faturamento mensal estimado (R$)">
+                <TextInput
+                  value={conta.faturamento_mensal}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    setConta({ ...conta, faturamento_mensal: e.target.value.replace(/\D/g, "") })
+                  }
+                />
+              </Field>
+              <Btn full disabled={criarConta.isPending} onClick={() => criarConta.mutate()}>
+                {criarConta.isPending ? "Criando" : "Criar conta de recebimento"}
+              </Btn>
+              <p className="text-xs text-muted-fg">
+                Sem essa conta o sensei não recebe o repasse e não pode ser ativado.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-fg">
+              Conta criada. Repasse automático de R$ 80 (mensal) e R$ 20 (avulso) por atleta.
+            </p>
+          )}
+          <div className="flex justify-between gap-4 text-sm">
+            <span className="eyebrow">Adesão paga</span>
+            <span>{sensei.adesao_paga ? "sim" : "não"}</span>
+          </div>
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
