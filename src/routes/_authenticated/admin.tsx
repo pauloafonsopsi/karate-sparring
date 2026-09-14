@@ -73,7 +73,11 @@ type Orfao = {
   created_at: string | null;
 };
 
-const ABAS = ["Senseis", "Leads", "Conciliação", "Config"] as const;
+const ABAS = ["Senseis", "Leads", "Receita", "Conciliação", "Config"] as const;
+
+function reais(v: number) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 function dataBr(v: string | null) {
   return v ? new Date(v).toLocaleDateString("pt-BR") : "—";
