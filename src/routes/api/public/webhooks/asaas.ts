@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
                 .from("pagamentos")
                 .update({ status: novoStatus, payload: payload as never })
                 .eq("asaas_payment_id", paymentId)
-                .select("id, lead_id")
+                .select("id, lead_id, produto, sensei_id")
                 .maybeSingle()
             : { data: null };
 
