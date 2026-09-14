@@ -72,6 +72,22 @@ function Dojos() {
     },
   });
 
+  const { data: pagamentos } = useQuery({
+    queryKey: ["pagamentos-do-dojo"],
+    enabled: !!acesso?.sensei_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pagamentos")
+        .select("lead_id, status, valor_sensei, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const pagamentoDoLead = (leadId: string) =>
+    (pagamentos ?? []).find((p) => p.lead_id === leadId) ?? null;
+
   async function sair() {
     await qc.cancelQueries();
     qc.clear();
