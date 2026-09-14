@@ -316,7 +316,38 @@ function PainelSensei({
     obs: sensei.obs ?? "",
   });
 
-  const semLinks = !f.link_afiliado_mensal.trim() || !f.link_afiliado_avulso.trim();
+  const semConta = !sensei.asaas_wallet_id;
+
+  const [conta, setConta] = useState({
+    cpf_cnpj: "",
+    nascimento: "",
+    cep: "",
+    endereco: "",
+    numero: "",
+    bairro: "",
+    faturamento_mensal: "3000",
+  });
+  const criarConta = useMutation({
+    mutationFn: () =>
+      criarSubcontaSensei({
+        data: {
+          sensei_id: sensei.id,
+          cpf_cnpj: conta.cpf_cnpj,
+          nascimento: conta.nascimento,
+          cep: conta.cep,
+          endereco: conta.endereco.trim(),
+          numero: conta.numero.trim(),
+          bairro: conta.bairro.trim(),
+          faturamento_mensal: Number(conta.faturamento_mensal || 0),
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Conta de recebimento criada.");
+      onSave({});
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Não foi possível criar a conta."),
+  });
 
   const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
   const criarAcesso = useMutation({
