@@ -6,8 +6,13 @@ import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
-import { supabase } from "@/integrations/supabase/client";
-import { criarLead, getAppConfig, redirectCheckout } from "@/lib/app.functions";
+import {
+  criarLead,
+  getAppConfig,
+  getPublicSenseis,
+  redirectCheckout,
+  type PublicSensei,
+} from "@/lib/app.functions";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
@@ -32,16 +37,7 @@ export const Route = createFileRoute("/")({
   component: Triagem,
 });
 
-type Sensei = {
-  id: string;
-  nome: string;
-  dojo: string;
-  cidade: string;
-  uf: string;
-  graduacao: string | null;
-  foto_url: string | null;
-  piloto: boolean;
-};
+type Sensei = PublicSensei;
 
 type Dados = { nome: string; whatsapp: string; email: string; cidade: string; uf: string };
 
@@ -69,6 +65,7 @@ function Passo({ n, titulo, children }: { n: string; titulo: string; children: R
 
 function Triagem() {
   const configFn = useServerFn(getAppConfig);
+  const publicSenseisFn = useServerFn(getPublicSenseis);
   const checkoutFn = useServerFn(redirectCheckout);
   const criarLeadFn = useServerFn(criarLead);
 
@@ -79,15 +76,7 @@ function Triagem() {
 
   const { data: senseis, isLoading } = useQuery({
     queryKey: ["senseis-ativos"],
-    queryFn: async (): Promise<Sensei[]> => {
-      const { data, error } = await supabase
-        .from("senseis")
-        .select("id, nome, dojo, cidade, uf, graduacao, foto_url, piloto")
-        .eq("status", "ativo")
-        .order("uf");
-      if (error) throw error;
-      return (data ?? []) as Sensei[];
-    },
+    queryFn: () => publicSenseisFn({}),
   });
 
   const [step, setStep] = useState(1);

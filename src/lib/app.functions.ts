@@ -6,6 +6,17 @@ export type AppConfig = {
   inscricoes_abertas: boolean;
 };
 
+export type PublicSensei = {
+  id: string;
+  nome: string;
+  dojo: string;
+  cidade: string;
+  uf: string;
+  graduacao: string | null;
+  foto_url: string | null;
+  piloto: boolean;
+};
+
 export const getAppConfig = createServerFn({ method: "GET" }).handler(
   async (): Promise<AppConfig> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -15,6 +26,20 @@ export const getAppConfig = createServerFn({ method: "GET" }).handler(
       modo_piloto: map.get("modo_piloto") !== "false",
       inscricoes_abertas: map.get("inscricoes_abertas") !== "false",
     };
+  },
+);
+
+export const getPublicSenseis = createServerFn({ method: "GET" }).handler(
+  async (): Promise<PublicSensei[]> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("senseis")
+      .select("id, nome, dojo, cidade, uf, graduacao, foto_url, piloto")
+      .eq("status", "ativo")
+      .order("uf");
+
+    if (error) throw new Error("Não foi possível carregar os dojôs disponíveis.");
+    return (data ?? []) as PublicSensei[];
   },
 );
 
