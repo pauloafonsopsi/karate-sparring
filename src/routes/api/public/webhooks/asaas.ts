@@ -109,14 +109,64 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
           }
 
           if (!alvo) {
+            // Sem cobrança correspondente: busca os dados do pagador no Asaas para
+            // permitir a conciliação (e tenta casar automaticamente pelo email).
+            let email: string | null = null;
+            let documento: string | null = null;
+            try {
+              const customerId = pagamento["customer"] ? String(pagamento["customer"]) : null;
+              if (customerId) {
+                const { asaasFetch } = await import("@/lib/asaas.server");
+                const { data: cfg } = await supabaseAdmin
+                  .from("config")
+                  .select("valor")
+                  .eq("chave", "asaas_ambiente")
+                  .maybeSingle();
+                const cliente = await asaasFetch<{ email?: string; cpfCnpj?: string }>(
+                  cfg?.valor === "production" ? "production" : "sandbox",
+                  `/customers/${customerId}`,
+                );
+                email = cliente.email?.toLowerCase() ?? null;
+                documento = cliente.cpfCnpj ?? null;
+              }
+            } catch (e) {
+              console.error("[asaas] falha ao buscar pagador do orfao", String(e).slice(0, 200));
+            }
+
+            let leadId: string | null = null;
+            if (email) {
+              const { data: lead } = await supabaseAdmin
+                .from("leads_atletas")
+                .select("id")
+                .eq("email", email)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              leadId = lead?.id ?? null;
+            }
+
             await supabaseAdmin.from("pagamentos_orfaos").insert({
               sale_id: paymentId,
-              email_pagador: null,
-              documento_pagador: null,
+              email_pagador: email,
+              documento_pagador: documento,
+              conciliado: leadId != null,
+              lead_id: leadId,
               payload: payload as never,
             });
-            await registrar("orfao");
-            return ok({ resultado: "orfao" });
+
+            if (leadId && novoStatus === "confirmado") {
+              await supabaseAdmin
+                .from("leads_atletas")
+                .update({
+                  status: "orfao_conciliado",
+                  greenn_sale_id: paymentId,
+                  convertido_em: new Date().toISOString(),
+                })
+                .eq("id", leadId);
+            }
+
+            await registrar(leadId ? "orfao_conciliado_por_email" : "orfao");
+            return ok({ resultado: leadId ? "orfao_conciliado" : "orfao" });
           }
 
           // Adesão do sensei: 12x de R$ 150 cobradas pelo Asaas.
