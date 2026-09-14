@@ -83,6 +83,13 @@ export type Database = {
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leads_atletas_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       pagamentos_orfaos: {
@@ -218,7 +225,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      senseis_publicos: {
+        Row: {
+          cidade: string | null
+          dojo: string | null
+          foto_url: string | null
+          graduacao: string | null
+          id: string | null
+          nome: string | null
+          piloto: boolean | null
+          uf: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          dojo?: string | null
+          foto_url?: string | null
+          graduacao?: string | null
+          id?: string | null
+          nome?: string | null
+          piloto?: boolean | null
+          uf?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          dojo?: string | null
+          foto_url?: string | null
+          graduacao?: string | null
+          id?: string | null
+          nome?: string | null
+          piloto?: boolean | null
+          uf?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

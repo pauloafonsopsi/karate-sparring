@@ -1,0 +1,1 @@
+REVOKE SELECT ON public.senseis_publicos FROM anon, authenticated;

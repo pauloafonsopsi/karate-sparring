@@ -1,0 +1,1 @@
+ALTER VIEW public.senseis_publicos SET (security_invoker = true);
