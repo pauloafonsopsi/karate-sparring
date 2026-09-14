@@ -1007,9 +1007,15 @@ function AbaConfig() {
         />
         <ValorConfig
           chave="adesao_parcela"
-          label="Valor da parcela (R$)"
+          label="Parcela no cartão (R$)"
           atual={data?.get("adesao_parcela") ?? "150"}
           onSalvar={(valor) => set.mutate({ chave: "adesao_parcela", valor })}
+        />
+        <ValorConfig
+          chave="adesao_parcela_pix"
+          label="Parcela no Pix mensal (R$)"
+          atual={data?.get("adesao_parcela_pix") ?? "200"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_parcela_pix", valor })}
         />
         <ValorConfig
           chave="adesao_parcelas"
