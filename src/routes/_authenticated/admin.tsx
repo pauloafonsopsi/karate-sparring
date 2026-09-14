@@ -933,8 +933,6 @@ function AbaConfig() {
     },
   });
 
-  const [link, setLink] = useState<string | null>(null);
-  const valorLink = link ?? data?.get("link_adesao_sensei") ?? "";
 
   const set = useMutation({
     mutationFn: async ({ chave, valor }: { chave: string; valor: string }) => {
