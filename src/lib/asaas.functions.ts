@@ -313,28 +313,28 @@ export const criarAdesaoPublica = createServerFn({ method: "POST" })
       instagram: data.instagram ?? null,
     };
 
+    // Segurança: este endpoint é público, então nunca altera nem cobra um cadastro
+    // que já existe — só o próprio dono (ou a organização, pelo painel) pode fazer isso.
+    // Sem essa regra, quem soubesse o email de um sensei poderia reescrever os dados
+    // dele e gerar cobranças no cadastro alheio.
     const { data: existente } = await supabaseAdmin
       .from("senseis")
-      .select("id, nome, email, whatsapp, adesao_paga")
+      .select("id")
       .eq("email", email)
       .maybeSingle();
 
-    let sensei = existente;
-    if (sensei?.adesao_paga) {
-      throw new Error("Este email já tem adesão paga. Fale com a organização.");
+    if (existente) {
+      throw new Error(
+        "Já existe um cadastro com este email. Nossa equipe entra em contato para concluir sua adesão.",
+      );
     }
 
-    if (sensei) {
-      await supabaseAdmin.from("senseis").update(base).eq("id", sensei.id);
-    } else {
-      const { data: criado, error } = await supabaseAdmin
-        .from("senseis")
-        .insert({ ...base, status: "aplicou" })
-        .select("id, nome, email, whatsapp, adesao_paga")
-        .single();
-      if (error || !criado) throw new Error("Não foi possível salvar sua inscrição.");
-      sensei = criado;
-    }
+    const { data: criado, error } = await supabaseAdmin
+      .from("senseis")
+      .insert({ ...base, status: "aplicou" })
+      .select("id, nome, email, whatsapp, adesao_paga")
+      .single();
+    if (error || !criado) throw new Error("Não foi possível salvar sua inscrição.");
 
-    return criarAdesaoNoAsaas(cfg.ambiente, sensei, data.cpf_cnpj, data.billing_type, cfg);
+    return criarAdesaoNoAsaas(cfg.ambiente, criado, data.cpf_cnpj, data.billing_type, cfg);
   });
