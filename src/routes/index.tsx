@@ -143,18 +143,29 @@ function Triagem() {
 
   async function escolherProduto(produto: "mensal" | "avulso") {
     if (!leadId) return;
+    if (cpf.replace(/\D/g, "").length !== 11) {
+      toast.error("Informe o CPF do pagador.");
+      return;
+    }
     setEnviando(true);
     try {
-      const { url } = await checkoutFn({ data: { lead_id: leadId, produto } });
+      const { url, mensagem } = await pagamentoFn({
+        data: { lead_id: leadId, produto, billing_type: forma, cpf },
+      });
       if (!url) {
         setPronto(
-          "Inscrições para este dojô abrem em breve. Seu cadastro foi salvo e avisaremos você no WhatsApp.",
+          mensagem ??
+            "Inscrições para este dojô abrem em breve. Seu cadastro foi salvo e avisaremos você no WhatsApp.",
         );
         return;
       }
       window.location.href = url;
-    } catch {
-      toast.error("Falha ao abrir o pagamento. Tente novamente em instantes.");
+    } catch (e) {
+      toast.error(
+        e instanceof Error && e.message
+          ? e.message
+          : "Falha ao abrir o pagamento. Tente novamente em instantes.",
+      );
     } finally {
       setEnviando(false);
     }
