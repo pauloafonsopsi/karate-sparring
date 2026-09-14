@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
+import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
 import { UFS } from "@/lib/ufs";
+import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({

@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as SenseiRouteImport } from './routes/sensei'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminDojosRouteImport } from './routes/_authenticated/admin_.dojos'
 import { Route as ApiPublicWebhooksGreennRouteImport } from './routes/api/public/webhooks/greenn'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +47,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminDojosRoute = AuthenticatedAdminDojosRouteImport.update({
+  id: '/admin_/dojos',
+  path: '/admin/dojos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicWebhooksGreennRoute = ApiPublicWebhooksGreennRouteImport.update({
   id: '/api/public/webhooks/greenn',
   path: '/api/public/webhooks/greenn',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin/dojos': typeof AuthenticatedAdminDojosRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin/dojos': typeof AuthenticatedAdminDojosRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesById {
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin_/dojos': typeof AuthenticatedAdminDojosRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRouteTypes {
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/confirmado'
     | '/sensei'
     | '/admin'
+    | '/admin/dojos'
     | '/api/public/webhooks/greenn'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
     | '/confirmado'
     | '/sensei'
     | '/admin'
+    | '/admin/dojos'
     | '/api/public/webhooks/greenn'
   id:
     | '__root__'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
     | '/confirmado'
     | '/sensei'
     | '/_authenticated/admin'
+    | '/_authenticated/admin_/dojos'
     | '/api/public/webhooks/greenn'
   fileRoutesById: FileRoutesById
 }
@@ -159,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin_/dojos': {
+      id: '/_authenticated/admin_/dojos'
+      path: '/admin/dojos'
+      fullPath: '/admin/dojos'
+      preLoaderRoute: typeof AuthenticatedAdminDojosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/webhooks/greenn': {
       id: '/api/public/webhooks/greenn'
       path: '/api/public/webhooks/greenn'
@@ -171,10 +190,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminDojosRoute: typeof AuthenticatedAdminDojosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminDojosRoute: AuthenticatedAdminDojosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
