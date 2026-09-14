@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConfirmadoRouteImport } from './routes/confirmado'
+import { Route as SenseiRouteImport } from './routes/sensei'
 import { Route as ApiPublicWebhooksGreennRouteImport } from './routes/api/public/webhooks/greenn'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmadoRoute = ConfirmadoRouteImport.update({
+  id: '/confirmado',
+  path: '/confirmado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SenseiRoute = SenseiRouteImport.update({
+  id: '/sensei',
+  path: '/sensei',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWebhooksGreennRoute = ApiPublicWebhooksGreennRouteImport.update({
@@ -25,27 +37,36 @@ const ApiPublicWebhooksGreennRoute = ApiPublicWebhooksGreennRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/confirmado': typeof ConfirmadoRoute
+  '/sensei': typeof SenseiRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/confirmado': typeof ConfirmadoRoute
+  '/sensei': typeof SenseiRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/confirmado': typeof ConfirmadoRoute
+  '/sensei': typeof SenseiRoute
   '/api/public/webhooks/greenn': typeof ApiPublicWebhooksGreennRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/webhooks/greenn'
+  fullPaths: '/' | '/confirmado' | '/sensei' | '/api/public/webhooks/greenn'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/webhooks/greenn'
-  id: '__root__' | '/' | '/api/public/webhooks/greenn'
+  to: '/' | '/confirmado' | '/sensei' | '/api/public/webhooks/greenn'
+  id:
+    '__root__' | '/' | '/confirmado' | '/sensei' | '/api/public/webhooks/greenn'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConfirmadoRoute: typeof ConfirmadoRoute
+  SenseiRoute: typeof SenseiRoute
   ApiPublicWebhooksGreennRoute: typeof ApiPublicWebhooksGreennRoute
 }
 
@@ -56,6 +77,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirmado': {
+      id: '/confirmado'
+      path: '/confirmado'
+      fullPath: '/confirmado'
+      preLoaderRoute: typeof ConfirmadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sensei': {
+      id: '/sensei'
+      path: '/sensei'
+      fullPath: '/sensei'
+      preLoaderRoute: typeof SenseiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/greenn': {
@@ -70,6 +105,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConfirmadoRoute: ConfirmadoRoute,
+  SenseiRoute: SenseiRoute,
   ApiPublicWebhooksGreennRoute: ApiPublicWebhooksGreennRoute,
 }
 export const routeTree = rootRouteImport
