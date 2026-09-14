@@ -1,0 +1,1 @@
+UPDATE public.config SET valor = 'production' WHERE chave = 'asaas_ambiente';
