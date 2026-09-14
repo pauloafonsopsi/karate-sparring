@@ -966,15 +966,6 @@ function AbaConfig() {
 
   return (
     <div className="max-w-xl space-y-4">
-      <Field label="Link de pagamento da Adesão Sensei (Greenn)">
-        <TextInput value={valorLink} onChange={(e) => setLink(e.target.value)} />
-      </Field>
-      <Btn
-        variant="outline"
-        onClick={() => set.mutate({ chave: "link_adesao_sensei", valor: valorLink.trim() })}
-      >
-        Salvar link
-      </Btn>
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
 
