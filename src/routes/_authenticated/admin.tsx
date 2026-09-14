@@ -7,7 +7,8 @@ import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
 import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
-import { UFS } from "@/lib/ufs";
+import { criarSubcontaSensei } from "@/lib/asaas.functions";
+import { UFS, maskCep, maskCpf } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
