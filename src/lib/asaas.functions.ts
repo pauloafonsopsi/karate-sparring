@@ -313,20 +313,21 @@ export const criarAdesaoPublica = createServerFn({ method: "POST" })
       instagram: data.instagram ?? null,
     };
 
-    // Segurança: este endpoint é público, então nunca altera nem cobra um cadastro
-    // que já existe — só o próprio dono (ou a organização, pelo painel) pode fazer isso.
-    // Sem essa regra, quem soubesse o email de um sensei poderia reescrever os dados
-    // dele e gerar cobranças no cadastro alheio.
+    // Segurança: endpoint público. Nunca sobrescreve os dados de um cadastro existente
+    // e nunca cobra de novo quem já pagou. Se a adesão está pendente, apenas devolve
+    // (ou gera) a cobrança daquele mesmo cadastro.
     const { data: existente } = await supabaseAdmin
       .from("senseis")
-      .select("id")
+      .select("id, nome, email, whatsapp, adesao_paga, adesao_invoice_url")
       .eq("email", email)
       .maybeSingle();
 
     if (existente) {
-      throw new Error(
-        "Já existe um cadastro com este email. Nossa equipe entra em contato para concluir sua adesão.",
-      );
+      if (existente.adesao_paga) {
+        throw new Error("Este email já tem adesão paga. Fale com a organização.");
+      }
+      if (existente.adesao_invoice_url) return { url: existente.adesao_invoice_url };
+      return criarAdesaoNoAsaas(cfg.ambiente, existente, data.cpf_cnpj, data.billing_type, cfg);
     }
 
     const { data: criado, error } = await supabaseAdmin
