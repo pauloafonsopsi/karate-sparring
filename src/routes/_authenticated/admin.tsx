@@ -45,7 +45,7 @@ type Sensei = {
   asaas_account_id: string | null;
   asaas_wallet_id: string | null;
   asaas_status: string | null;
-  adesao_paga: boolean | null;
+  adesao_paga: boolean;
 };
 
 type Lead = {
