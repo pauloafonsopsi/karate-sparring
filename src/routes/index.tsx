@@ -61,7 +61,7 @@ function Passo({ n, titulo, children }: { n: string; titulo: string; children: R
 function Triagem() {
   const configFn = useServerFn(getAppConfig);
   const publicSenseisFn = useServerFn(getPublicSenseis);
-  const checkoutFn = useServerFn(redirectCheckout);
+  const pagamentoFn = useServerFn(iniciarPagamento);
   const criarLeadFn = useServerFn(criarLead);
 
   const { data: config } = useQuery({
