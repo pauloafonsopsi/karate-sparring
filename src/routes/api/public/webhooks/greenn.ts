@@ -49,6 +49,7 @@ export const Route = createFileRoute("/api/public/webhooks/greenn")({
             const { data: existing } = await supabaseAdmin
               .from("webhook_log")
               .select("id")
+              .eq("provedor", "greenn")
               .eq("sale_id", saleId)
               .maybeSingle();
             if (existing) return ok({ resultado: "duplicado" });
