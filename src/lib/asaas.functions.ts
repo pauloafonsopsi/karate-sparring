@@ -187,11 +187,13 @@ export const criarSubcontaSensei = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => subcontaInput.parse(data))
   .handler(async ({ data, context }): Promise<{ wallet_id: string }> => {
-    const { data: admin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!admin) throw new Error("Apenas administradores podem criar contas de recebimento.");
+    const { data: papel } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!papel) throw new Error("Apenas administradores podem criar contas de recebimento.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { asaasFetch, onlyDigits } = await import("./asaas.server");
@@ -252,11 +254,13 @@ export const criarCobrancaAdesao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => adesaoInput.parse(data))
   .handler(async ({ data, context }): Promise<{ url: string }> => {
-    const { data: admin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!admin) throw new Error("Apenas administradores podem cobrar a adesão.");
+    const { data: papel } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!papel) throw new Error("Apenas administradores podem cobrar a adesão.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { criarAdesaoNoAsaas } = await import("./asaas.server");
