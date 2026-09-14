@@ -352,6 +352,28 @@ function PainelSensei({
       toast.error(e instanceof Error ? e.message : "Não foi possível criar a conta."),
   });
 
+  const [adesao, setAdesao] = useState<{ cpf_cnpj: string; billing_type: "PIX" | "CREDIT_CARD" }>({
+    cpf_cnpj: "",
+    billing_type: "CREDIT_CARD",
+  });
+  const cobrarAdesao = useMutation({
+    mutationFn: () =>
+      criarCobrancaAdesao({
+        data: {
+          sensei_id: sensei.id,
+          cpf_cnpj: adesao.cpf_cnpj,
+          billing_type: adesao.billing_type,
+        },
+      }),
+    onSuccess: (r: { url: string }) => {
+      toast.success("Cobrança da adesão criada.");
+      onSave({});
+      if (r.url) window.open(r.url, "_blank");
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Não foi possível criar a cobrança."),
+  });
+
   const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
   const criarAcesso = useMutation({
     mutationFn: () =>
