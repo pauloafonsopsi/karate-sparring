@@ -89,6 +89,8 @@ function Triagem() {
   const [enviando, setEnviando] = useState(false);
   const [pronto, setPronto] = useState<string | null>(null);
   const [aceite, setAceite] = useState(false);
+  const [cpf, setCpf] = useState("");
+  const [forma, setForma] = useState<"PIX" | "CREDIT_CARD">("PIX");
 
   const inscricoesAbertas = config?.inscricoes_abertas !== false;
   const modoPiloto = config?.modo_piloto !== false;
