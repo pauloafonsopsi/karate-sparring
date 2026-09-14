@@ -891,9 +891,11 @@ function AbaConfig() {
     );
   };
 
+  const producao = data?.get("asaas_ambiente") === "production";
+
   return (
     <div className="max-w-xl space-y-4">
-      <Field label="Link de pagamento da Adesão Sensei">
+      <Field label="Link de pagamento da Adesão Sensei (Greenn)">
         <TextInput value={valorLink} onChange={(e) => setLink(e.target.value)} />
       </Field>
       <Btn
@@ -904,6 +906,48 @@ function AbaConfig() {
       </Btn>
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
+
+      <div className="mt-8 space-y-4 border-t border-line pt-6">
+        <p className="eyebrow">Pagamentos dos atletas</p>
+        <ValorConfig
+          chave="preco_mensal"
+          label="Preço mensal (R$)"
+          atual={data?.get("preco_mensal") ?? "100"}
+          onSalvar={(valor) => set.mutate({ chave: "preco_mensal", valor })}
+        />
+        <ValorConfig
+          chave="repasse_mensal"
+          label="Repasse ao sensei no mensal (R$)"
+          atual={data?.get("repasse_mensal") ?? "80"}
+          onSalvar={(valor) => set.mutate({ chave: "repasse_mensal", valor })}
+        />
+        <ValorConfig
+          chave="preco_avulso"
+          label="Preço avulso (R$)"
+          atual={data?.get("preco_avulso") ?? "30"}
+          onSalvar={(valor) => set.mutate({ chave: "preco_avulso", valor })}
+        />
+        <ValorConfig
+          chave="repasse_avulso"
+          label="Repasse ao sensei no avulso (R$)"
+          atual={data?.get("repasse_avulso") ?? "20"}
+          onSalvar={(valor) => set.mutate({ chave: "repasse_avulso", valor })}
+        />
+        <div className="flex items-center justify-between border border-line bg-surface p-4">
+          <span className="text-sm">
+            Cobranças reais {producao ? "ligadas" : "desligadas (modo de teste)"}
+          </span>
+          <button
+            onClick={() =>
+              set.mutate({
+                chave: "asaas_ambiente",
+                valor: producao ? "sandbox" : "production",
+              })
+            }
+            className={`h-7 w-12 border ${producao ? "border-brand bg-brand" : "border-line"}`}
+          />
+        </div>
+      </div>
     </div>
   );
 }
