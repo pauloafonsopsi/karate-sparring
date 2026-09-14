@@ -247,6 +247,8 @@ export type Database = {
       }
       senseis: {
         Row: {
+          adesao_asaas_id: string | null
+          adesao_invoice_url: string | null
           adesao_paga: boolean
           asaas_account_id: string | null
           asaas_status: string | null
@@ -271,6 +273,8 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          adesao_asaas_id?: string | null
+          adesao_invoice_url?: string | null
           adesao_paga?: boolean
           asaas_account_id?: string | null
           asaas_status?: string | null
@@ -295,6 +299,8 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          adesao_asaas_id?: string | null
+          adesao_invoice_url?: string | null
           adesao_paga?: boolean
           asaas_account_id?: string | null
           asaas_status?: string | null

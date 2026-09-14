@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
                 .from("pagamentos")
                 .update({ status: novoStatus, payload: payload as never })
                 .eq("asaas_payment_id", paymentId)
-                .select("id, lead_id")
+                .select("id, lead_id, produto, sensei_id")
                 .maybeSingle()
             : { data: null };
 
@@ -94,7 +94,7 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
             const subId = String(pagamento["subscription"]);
             const { data: assinatura } = await supabaseAdmin
               .from("pagamentos")
-              .select("id, lead_id")
+              .select("id, lead_id, produto, sensei_id")
               .eq("asaas_subscription_id", subId)
               .order("created_at", { ascending: false })
               .limit(1)
@@ -117,6 +117,19 @@ export const Route = createFileRoute("/api/public/webhooks/asaas")({
             });
             await registrar("orfao");
             return ok({ resultado: "orfao" });
+          }
+
+          // Adesão do sensei: 12x de R$ 150 cobradas pelo Asaas.
+          if (novoStatus === "confirmado" && alvo.produto === "adesao" && alvo.sensei_id) {
+            await supabaseAdmin
+              .from("senseis")
+              .update({
+                adesao_paga: true,
+                data_adesao: new Date().toISOString().slice(0, 10),
+              })
+              .eq("id", alvo.sensei_id);
+            await registrar("adesao_sensei");
+            return ok({ resultado: "adesao_sensei" });
           }
 
           if (novoStatus === "confirmado" && alvo.lead_id) {

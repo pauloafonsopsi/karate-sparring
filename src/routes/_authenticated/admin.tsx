@@ -7,7 +7,7 @@ import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
 import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
-import { criarSubcontaSensei } from "@/lib/asaas.functions";
+import { criarCobrancaAdesao, criarSubcontaSensei } from "@/lib/asaas.functions";
 import { UFS, maskCep, maskCpf } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
@@ -47,6 +47,8 @@ type Sensei = {
   asaas_wallet_id: string | null;
   asaas_status: string | null;
   adesao_paga: boolean;
+  adesao_invoice_url: string | null;
+  adesao_asaas_id: string | null;
 };
 
 type Lead = {
@@ -350,6 +352,28 @@ function PainelSensei({
       toast.error(e instanceof Error ? e.message : "Não foi possível criar a conta."),
   });
 
+  const [adesao, setAdesao] = useState<{ cpf_cnpj: string; billing_type: "PIX" | "CREDIT_CARD" }>({
+    cpf_cnpj: "",
+    billing_type: "CREDIT_CARD",
+  });
+  const cobrarAdesao = useMutation({
+    mutationFn: () =>
+      criarCobrancaAdesao({
+        data: {
+          sensei_id: sensei.id,
+          cpf_cnpj: adesao.cpf_cnpj,
+          billing_type: adesao.billing_type,
+        },
+      }),
+    onSuccess: (r: { url: string }) => {
+      toast.success("Cobrança da adesão criada.");
+      onSave({});
+      if (r.url) window.open(r.url, "_blank");
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Não foi possível criar a cobrança."),
+  });
+
   const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
   const criarAcesso = useMutation({
     mutationFn: () =>
@@ -538,10 +562,57 @@ function PainelSensei({
               Conta criada. Repasse automático de R$ 80 (mensal) e R$ 20 (avulso) por atleta.
             </p>
           )}
+        </div>
+
+        <div className="mt-8 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Adesão do sensei · R$ 1.800 em 12x de R$ 150</p>
           <div className="flex justify-between gap-4 text-sm">
-            <span className="eyebrow">Adesão paga</span>
+            <span className="text-muted-fg">Adesão paga</span>
             <span>{sensei.adesao_paga ? "sim" : "não"}</span>
           </div>
+          {sensei.adesao_invoice_url ? (
+            <a
+              href={sensei.adesao_invoice_url}
+              target="_blank"
+              rel="noreferrer"
+              className="block break-all text-sm text-brand underline"
+            >
+              Abrir cobrança da adesão
+            </a>
+          ) : null}
+          <Field label="CPF ou CNPJ do sensei (pagador)">
+            <TextInput
+              value={adesao.cpf_cnpj}
+              inputMode="numeric"
+              onChange={(e) => setAdesao({ ...adesao, cpf_cnpj: maskCpf(e.target.value) })}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ["CREDIT_CARD", "Cartão 12x"],
+                ["PIX", "Pix mensal"],
+              ] as const
+            ).map(([valor, label]) => (
+              <button
+                key={valor}
+                onClick={() => setAdesao({ ...adesao, billing_type: valor })}
+                className={`border p-3 text-sm ${
+                  adesao.billing_type === valor ? "border-brand text-fg" : "border-line text-muted-fg"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <Btn
+            full
+            variant="outline"
+            disabled={adesao.cpf_cnpj.replace(/\D/g, "").length < 11 || cobrarAdesao.isPending}
+            onClick={() => cobrarAdesao.mutate()}
+          >
+            {cobrarAdesao.isPending ? "Gerando" : "Gerar cobrança da adesão"}
+          </Btn>
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
@@ -862,8 +933,6 @@ function AbaConfig() {
     },
   });
 
-  const [link, setLink] = useState<string | null>(null);
-  const valorLink = link ?? data?.get("link_adesao_sensei") ?? "";
 
   const set = useMutation({
     mutationFn: async ({ chave, valor }: { chave: string; valor: string }) => {
@@ -895,15 +964,6 @@ function AbaConfig() {
 
   return (
     <div className="max-w-xl space-y-4">
-      <Field label="Link de pagamento da Adesão Sensei (Greenn)">
-        <TextInput value={valorLink} onChange={(e) => setLink(e.target.value)} />
-      </Field>
-      <Btn
-        variant="outline"
-        onClick={() => set.mutate({ chave: "link_adesao_sensei", valor: valorLink.trim() })}
-      >
-        Salvar link
-      </Btn>
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
 
@@ -932,6 +992,25 @@ function AbaConfig() {
           label="Repasse ao sensei no avulso (R$)"
           atual={data?.get("repasse_avulso") ?? "20"}
           onSalvar={(valor) => set.mutate({ chave: "repasse_avulso", valor })}
+        />
+        <p className="eyebrow pt-4">Adesão do sensei</p>
+        <ValorConfig
+          chave="adesao_total"
+          label="Valor total da adesão (R$)"
+          atual={data?.get("adesao_total") ?? "1800"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_total", valor })}
+        />
+        <ValorConfig
+          chave="adesao_parcela"
+          label="Valor da parcela (R$)"
+          atual={data?.get("adesao_parcela") ?? "150"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_parcela", valor })}
+        />
+        <ValorConfig
+          chave="adesao_parcelas"
+          label="Número de parcelas"
+          atual={data?.get("adesao_parcelas") ?? "12"}
+          onSalvar={(valor) => set.mutate({ chave: "adesao_parcelas", valor })}
         />
         <div className="flex items-center justify-between border border-line bg-surface p-4">
           <span className="text-sm">
