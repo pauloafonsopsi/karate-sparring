@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
@@ -76,6 +76,11 @@ function Admin() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Senseis");
+  const { data: acesso } = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso() });
+
+  useEffect(() => {
+    if (acesso && !acesso.admin) void navigate({ to: "/admin/dojos", replace: true });
+  }, [acesso, navigate]);
 
   async function sair() {
     await qc.cancelQueries();
@@ -138,6 +143,26 @@ function AbaSenseis() {
       return (data ?? []) as Sensei[];
     },
   });
+
+  const { data: leadsResumo } = useQuery({
+    queryKey: ["admin-leads-resumo"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads_atletas")
+        .select("id, sensei_id, status");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const contar = (senseiId: string) => {
+    const ls = (leadsResumo ?? []).filter((l) => l.sensei_id === senseiId);
+    return {
+      total: ls.length,
+      convertidos: ls.filter((l) => l.status === "convertido").length,
+      orfaos: ls.filter((l) => l.status === "orfao_conciliado").length,
+    };
+  };
 
   const salvar = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Sensei> }) => {
