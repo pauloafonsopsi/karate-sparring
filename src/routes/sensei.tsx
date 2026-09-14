@@ -157,9 +157,12 @@ function PaginaSensei() {
         <section className="mb-14 border border-line bg-surface p-6">
           <h2 className="mb-4 text-xl">Investimento</h2>
           <p className="text-sm leading-relaxed text-muted-fg">
-            Condição de fundador: 1º ano por R$ 1.800 em até 12x de R$ 150, no cartão ou no Pix
-            mensal. A partir do 2º ano: R$ 2.400/ano.
+            Condição de fundador: 1º ano por R$ 1.800 em 12x de R$ 150 no cartão parcelado. No Pix
+            mensal, são 12 parcelas de R$ 200. A partir do 2º ano: R$ 2.400/ano.
           </p>
+          <Link to="/adesao" className="mt-6 block">
+            <Btn full>Fazer minha adesão anual</Btn>
+          </Link>
         </section>
 
         <section>

@@ -1,0 +1,1 @@
+INSERT INTO public.config (chave, valor) VALUES ('adesao_parcela_pix', '200') ON CONFLICT (chave) DO NOTHING;

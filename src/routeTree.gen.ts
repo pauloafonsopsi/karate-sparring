@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AdesaoRouteImport } from './routes/adesao'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as SenseiRouteImport } from './routes/sensei'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdesaoRoute = AdesaoRouteImport.update({
+  id: '/adesao',
+  path: '/adesao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -60,6 +66,7 @@ const ApiPublicWebhooksAsaasRoute = ApiPublicWebhooksAsaasRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/adesao': typeof AdesaoRoute
   '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/adesao': typeof AdesaoRoute
   '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/adesao': typeof AdesaoRoute
   '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/sensei': typeof SenseiRoute
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/adesao'
     | '/auth'
     | '/confirmado'
     | '/sensei'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/adesao'
     | '/auth'
     | '/confirmado'
     | '/sensei'
@@ -110,6 +121,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/adesao'
     | '/auth'
     | '/confirmado'
     | '/sensei'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdesaoRoute: typeof AdesaoRoute
   AuthRoute: typeof AuthRoute
   ConfirmadoRoute: typeof ConfirmadoRoute
   SenseiRoute: typeof SenseiRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/adesao': {
+      id: '/adesao'
+      path: '/adesao'
+      fullPath: '/adesao'
+      preLoaderRoute: typeof AdesaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -204,6 +224,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdesaoRoute: AdesaoRoute,
   AuthRoute: AuthRoute,
   ConfirmadoRoute: ConfirmadoRoute,
   SenseiRoute: SenseiRoute,
