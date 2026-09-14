@@ -212,7 +212,18 @@ function AbaSenseis() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line bg-surface text-left">
-              {["Nome", "Dojô", "Cidade/UF", "Status", "Piloto", "Aplicou em"].map((h) => (
+              {[
+                "Nome",
+                "Dojô",
+                "Cidade/UF",
+                "Status",
+                "Piloto",
+                "Leads",
+                "Convertidos",
+                "Órfãos",
+                "Aplicou em",
+                "Contato",
+              ].map((h) => (
                 <th key={h} className="eyebrow p-3">
                   {h}
                 </th>
@@ -243,12 +254,28 @@ function AbaSenseis() {
                     className={`h-6 w-11 border ${s.piloto ? "border-brand bg-brand" : "border-line"}`}
                   />
                 </td>
+                <td className="p-3 font-semibold">{contar(s.id).total}</td>
+                <td className="p-3 font-semibold text-brand">{contar(s.id).convertidos}</td>
+                <td className="p-3 text-muted-fg">{contar(s.id).orfaos}</td>
                 <td className="p-3 text-muted-fg">{dataBr(s.created_at)}</td>
+                <td className="p-3">
+                  {whatsappLink(s.whatsapp) && (
+                    <a
+                      href={whatsappLink(s.whatsapp)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="eyebrow border border-line px-3 py-2 hover:border-foreground/40"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                </td>
               </tr>
             ))}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-muted-fg">
+                <td colSpan={10} className="p-6 text-center text-muted-fg">
                   Nenhum sensei encontrado.
                 </td>
               </tr>
