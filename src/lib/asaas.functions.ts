@@ -259,10 +259,8 @@ export const criarCobrancaAdesao = createServerFn({ method: "POST" })
     if (!admin) throw new Error("Apenas administradores podem cobrar a adesão.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { asaasFetch, onlyDigits, proximoVencimento } = await import("./asaas.server");
-
+    const { criarAdesaoNoAsaas } = await import("./asaas.server");
     const cfg = await lerConfig();
-    const env = cfg.ambiente;
 
     const { data: sensei } = await supabaseAdmin
       .from("senseis")
@@ -271,90 +269,68 @@ export const criarCobrancaAdesao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!sensei) throw new Error("Sensei não encontrado.");
 
-    const cliente = await asaasFetch<{ id: string }>(env, "/customers", {
-      method: "POST",
-      body: {
-        name: sensei.nome,
-        email: sensei.email,
-        mobilePhone: onlyDigits(sensei.whatsapp),
-        cpfCnpj: onlyDigits(data.cpf_cnpj),
-        externalReference: `sensei:${sensei.id}`,
-        notificationDisabled: false,
-      },
-    });
+    return criarAdesaoNoAsaas(cfg.ambiente, sensei, data.cpf_cnpj, data.billing_type, cfg);
+  });
 
-    const descricao = `Karate Sparring · adesão sensei · ${sensei.nome}`;
-    const primeiro = proximoVencimento(3);
+/* ---------------- ADESÃO PÚBLICA (o próprio sensei se inscreve) ---------------- */
 
-    let paymentId: string | null = null;
-    let subscriptionId: string | null = null;
-    let invoiceUrl = "";
-    let bruto: unknown = null;
+const adesaoPublicaInput = z.object({
+  nome: z.string().trim().min(3).max(120),
+  dojo: z.string().trim().min(2).max(120),
+  cidade: z.string().trim().min(2).max(120),
+  uf: z.string().trim().length(2),
+  whatsapp: z.string().trim().min(10).max(20),
+  email: z.string().trim().email().max(160),
+  graduacao: z.string().trim().max(40).optional(),
+  tempo_ensino: z.string().trim().max(40).optional(),
+  instagram: z.string().trim().max(120).optional(),
+  cpf_cnpj: z.string().trim().min(11).max(18),
+  billing_type: z.enum(["PIX", "CREDIT_CARD"]),
+  aceite: z.literal(true),
+});
 
-    if (data.billing_type === "CREDIT_CARD") {
-      const pag = await asaasFetch<{ id: string; invoiceUrl?: string }>(env, "/payments", {
-        method: "POST",
-        body: {
-          customer: cliente.id,
-          billingType: "CREDIT_CARD",
-          installmentCount: cfg.adesao_parcelas,
-          installmentValue: cfg.adesao_parcela,
-          dueDate: primeiro,
-          description: descricao,
-          externalReference: `sensei:${sensei.id}`,
-        },
-      });
-      paymentId = pag.id;
-      invoiceUrl = pag.invoiceUrl ?? "";
-      bruto = pag;
-    } else {
-      const fim = new Date(primeiro);
-      fim.setMonth(fim.getMonth() + (cfg.adesao_parcelas - 1));
-      const sub = await asaasFetch<{ id: string }>(env, "/subscriptions", {
-        method: "POST",
-        body: {
-          customer: cliente.id,
-          billingType: "PIX",
-          value: cfg.adesao_parcela,
-          nextDueDate: primeiro,
-          endDate: fim.toISOString().slice(0, 10),
-          cycle: "MONTHLY",
-          description: descricao,
-          externalReference: `sensei:${sensei.id}`,
-        },
-      });
-      subscriptionId = sub.id;
-      bruto = sub;
-      const cobrancas = await asaasFetch<{ data?: { id: string; invoiceUrl?: string }[] }>(
-        env,
-        `/subscriptions/${sub.id}/payments`,
-      );
-      const primeira = cobrancas.data?.[0];
-      paymentId = primeira?.id ?? null;
-      invoiceUrl = primeira?.invoiceUrl ?? "";
+export const criarAdesaoPublica = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => adesaoPublicaInput.parse(data))
+  .handler(async ({ data }): Promise<{ url: string }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { criarAdesaoNoAsaas } = await import("./asaas.server");
+    const cfg = await lerConfig();
+
+    const email = data.email.toLowerCase();
+    const base = {
+      nome: data.nome,
+      dojo: data.dojo,
+      cidade: data.cidade,
+      uf: data.uf.toUpperCase(),
+      whatsapp: data.whatsapp,
+      email,
+      graduacao: data.graduacao ?? null,
+      tempo_ensino: data.tempo_ensino ?? null,
+      instagram: data.instagram ?? null,
+    };
+
+    const { data: existente } = await supabaseAdmin
+      .from("senseis")
+      .select("id, nome, email, whatsapp, adesao_paga")
+      .eq("email", email)
+      .maybeSingle();
+
+    let sensei = existente;
+    if (sensei?.adesao_paga) {
+      throw new Error("Este email já tem adesão paga. Fale com a organização.");
     }
 
-    await supabaseAdmin.from("pagamentos").insert({
-      lead_id: null,
-      sensei_id: sensei.id,
-      produto: "adesao",
-      provedor: "asaas",
-      asaas_customer_id: cliente.id,
-      asaas_payment_id: paymentId,
-      asaas_subscription_id: subscriptionId,
-      valor_total: cfg.adesao_total,
-      valor_sensei: 0,
-      billing_type: data.billing_type,
-      status: "pendente",
-      invoice_url: invoiceUrl || null,
-      payload: bruto as never,
-    });
+    if (sensei) {
+      await supabaseAdmin.from("senseis").update(base).eq("id", sensei.id);
+    } else {
+      const { data: criado, error } = await supabaseAdmin
+        .from("senseis")
+        .insert({ ...base, status: "aplicou" })
+        .select("id, nome, email, whatsapp, adesao_paga")
+        .single();
+      if (error || !criado) throw new Error("Não foi possível salvar sua inscrição.");
+      sensei = criado;
+    }
 
-    await supabaseAdmin
-      .from("senseis")
-      .update({ adesao_invoice_url: invoiceUrl || null, adesao_asaas_id: subscriptionId ?? paymentId })
-      .eq("id", sensei.id);
-
-    if (!invoiceUrl) throw new Error("Cobrança criada, mas o Asaas não retornou o link.");
-    return { url: invoiceUrl };
+    return criarAdesaoNoAsaas(cfg.ambiente, sensei, data.cpf_cnpj, data.billing_type, cfg);
   });
