@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
-import { supabase } from "@/integrations/supabase/client";
+import { criarAplicacaoSensei } from "@/lib/app.functions";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/sensei")({
