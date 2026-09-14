@@ -314,6 +314,20 @@ function PainelSensei({
 
   const semLinks = !f.link_afiliado_mensal.trim() || !f.link_afiliado_avulso.trim();
 
+  const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
+  const criarAcesso = useMutation({
+    mutationFn: () =>
+      criarAcessoSensei({
+        data: { sensei_id: sensei.id, email: acesso.email.trim(), senha: acesso.senha },
+      }),
+    onSuccess: () => {
+      setAcesso((a) => ({ ...a, senha: "" }));
+      toast.success("Acesso do sensei criado.");
+    },
+    onError: () => toast.error("Não foi possível criar o acesso."),
+  });
+  const wa = whatsappLink(sensei.whatsapp);
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-background/80">
       <aside className="h-full w-full max-w-md overflow-y-auto border-l border-line bg-surface p-6">
