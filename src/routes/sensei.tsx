@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
-import { supabase } from "@/integrations/supabase/client";
+import { criarAplicacaoSensei } from "@/lib/app.functions";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/sensei")({
@@ -87,28 +87,30 @@ function PaginaSensei() {
       return;
     }
     setEnviando(true);
-    const { error } = await supabase.from("senseis").insert({
-      nome: form.nome.trim(),
-      dojo: form.dojo.trim(),
-      cidade: form.cidade.trim(),
-      uf: form.uf,
-      whatsapp: form.whatsapp,
-      email: form.email.trim().toLowerCase(),
-      graduacao: form.graduacao || null,
-      tempo_ensino: form.tempo_ensino || null,
-      instagram: form.instagram.trim() || null,
-      status: "aplicou",
-    });
-    setEnviando(false);
-    if (error) {
+    try {
+      await criarAplicacaoSensei({
+        data: {
+          nome: form.nome.trim(),
+          dojo: form.dojo.trim(),
+          cidade: form.cidade.trim(),
+          uf: form.uf,
+          whatsapp: form.whatsapp,
+          email: form.email.trim(),
+          graduacao: form.graduacao || null,
+          tempo_ensino: form.tempo_ensino || null,
+          instagram: form.instagram.trim() || null,
+        },
+      });
+      setEnviado(true);
+    } catch (e) {
       toast.error(
-        error.code === "23505" || error.message.includes("duplicate")
-          ? "Já existe uma aplicação com este email."
+        e instanceof Error && e.message
+          ? e.message
           : "Não conseguimos enviar sua aplicação. Verifique a conexão e tente de novo.",
       );
-      return;
+    } finally {
+      setEnviando(false);
     }
-    setEnviado(true);
   }
 
   return (
