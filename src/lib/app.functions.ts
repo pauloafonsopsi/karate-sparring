@@ -75,6 +75,53 @@ export const redirectCheckout = createServerFn({ method: "POST" })
     return { url: url.trim() };
   });
 
+const aplicacaoSenseiInput = z.object({
+  nome: z.string().trim().min(3).max(120),
+  dojo: z.string().trim().min(2).max(120),
+  cidade: z.string().trim().min(2).max(120),
+  uf: z.string().trim().length(2),
+  whatsapp: z.string().trim().min(10).max(20),
+  email: z.string().trim().email().max(160),
+  graduacao: z.string().trim().max(60).optional().nullable(),
+  tempo_ensino: z.string().trim().max(60).optional().nullable(),
+  instagram: z.string().trim().max(120).optional().nullable(),
+});
+
+export const criarAplicacaoSensei = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => aplicacaoSenseiInput.parse(data))
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const email = data.email.toLowerCase();
+
+    const { data: existente } = await supabaseAdmin
+      .from("senseis")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (existente) throw new Error("Já existe uma aplicação com este email.");
+
+    const { error } = await supabaseAdmin.from("senseis").insert({
+      nome: data.nome,
+      dojo: data.dojo,
+      cidade: data.cidade,
+      uf: data.uf.toUpperCase(),
+      whatsapp: data.whatsapp,
+      email,
+      graduacao: data.graduacao?.trim() || null,
+      tempo_ensino: data.tempo_ensino?.trim() || null,
+      instagram: data.instagram?.trim() || null,
+      status: "aplicou",
+    });
+    if (error) {
+      throw new Error(
+        error.code === "23505"
+          ? "Já existe uma aplicação com este email."
+          : "Não conseguimos enviar sua aplicação. Tente novamente em instantes.",
+      );
+    }
+    return { ok: true };
+  });
+
 const leadInput = z.object({
   nome: z.string().trim().min(3).max(120),
   whatsapp: z.string().trim().min(10).max(20),
