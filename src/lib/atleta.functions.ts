@@ -61,13 +61,20 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const email = data.email.toLowerCase();
 
-    const { data: dojo } = await supabaseAdmin
-      .from("senseis")
-      .select("id, status")
-      .eq("id", data.sensei_id)
-      .maybeSingle();
+    const [{ data: dojo }, { data: cfg }] = await Promise.all([
+      supabaseAdmin.from("senseis").select("id, status, piloto").eq("id", data.sensei_id).maybeSingle(),
+      supabaseAdmin.from("config").select("chave, valor"),
+    ]);
+
+    const valor = (chave: string) => (cfg ?? []).find((c) => c.chave === chave)?.valor;
+    if (valor("inscricoes_abertas") === "false") {
+      throw new Error("As inscrições da liga estão fechadas neste momento.");
+    }
     if (!dojo || dojo.status !== "ativo") {
       throw new Error("Este dojô não está mais aberto para inscrições.");
+    }
+    if (valor("modo_piloto") === "true" && !dojo.piloto) {
+      throw new Error("Este dojô ainda não está participando do piloto da liga.");
     }
 
     const { data: jaExiste } = await supabaseAdmin
