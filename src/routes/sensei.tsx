@@ -22,6 +22,10 @@ export const Route = createFileRoute("/sensei")({
         content:
           "R$ 400/mês, menos R$ 20 por atleta filiado. Com 20 atletas, sua filiação zera.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:image", content: "https://karate-sparring.lovable.app/og.jpg" },
+      { name: "twitter:image", content: "https://karate-sparring.lovable.app/og.jpg" },
     ],
   }),
   component: PaginaSensei,

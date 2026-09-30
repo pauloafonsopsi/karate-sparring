@@ -5,7 +5,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type MeuAcesso = {
   admin: boolean;
+  sensei: boolean;
+  atleta: boolean;
   sensei_id: string | null;
+  /** Área inicial conforme o papel de maior nível. */
+  area: "/admin" | "/admin/dojos" | "/atleta";
 };
 
 export const getMeuAcesso = createServerFn({ method: "GET" })
@@ -22,60 +26,102 @@ export const getMeuAcesso = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .maybeSingle();
 
+    const lista = (papeis ?? []).map((p) => p.role as string);
+    const admin = lista.includes("admin");
+    const senseiId = vinculo?.sensei_id ?? null;
+    const sensei = lista.includes("sensei") || !!senseiId;
+    const atleta = lista.includes("atleta");
+
     return {
-      admin: (papeis ?? []).some((p) => p.role === "admin"),
-      sensei_id: vinculo?.sensei_id ?? null,
+      admin,
+      sensei,
+      atleta,
+      sensei_id: senseiId,
+      area: admin ? "/admin" : sensei ? "/admin/dojos" : "/atleta",
     };
   });
 
-const acessoInput = z.object({
+const conviteInput = z.object({
   sensei_id: z.string().uuid(),
-  email: z.string().trim().email().max(160),
-  senha: z.string().min(8).max(72),
+  /** Exigido pela tela quando o email já tem conta: vincula o papel sem tocar na senha. */
+  confirmar_vinculo: z.boolean().optional().default(false),
 });
 
-export const criarAcessoSensei = createServerFn({ method: "POST" })
+export type ResultadoConvite = {
+  situacao: "convidado" | "vinculado" | "conta_existente";
+  email: string;
+  /** Link de ativação para o admin copiar caso o email não chegue. */
+  link: string | null;
+};
+
+export const convidarSensei = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => acessoInput.parse(data))
-  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+  .inputValidator((data: unknown) => conviteInput.parse(data))
+  .handler(async ({ data, context }): Promise<ResultadoConvite> => {
     const { data: papeis } = await context.supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId);
     if (!(papeis ?? []).some((p) => p.role === "admin")) {
-      throw new Error("Apenas administradores podem criar acessos.");
+      throw new Error("Apenas administradores podem enviar convites.");
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const email = data.email.toLowerCase();
-    const criado = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: data.senha,
-      email_confirm: true,
-    });
+    const { data: sensei } = await supabaseAdmin
+      .from("senseis")
+      .select("id, email, status")
+      .eq("id", data.sensei_id)
+      .maybeSingle();
 
-    let userId = criado.data.user?.id ?? null;
-
-    if (!userId) {
-      const lista = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-      const achado = (lista.data?.users ?? []).find(
-        (u) => (u.email ?? "").toLowerCase() === email,
-      );
-      if (!achado) throw new Error(criado.error?.message ?? "Não foi possível criar o acesso.");
-      userId = achado.id;
-      await supabaseAdmin.auth.admin.updateUserById(userId, { password: data.senha });
+    if (!sensei) throw new Error("Sensei não encontrado.");
+    if (!["aprovado", "ativo"].includes(sensei.status)) {
+      throw new Error("Só é possível convidar senseis com status aprovado ou ativo.");
     }
 
-    const r1 = await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "sensei" }, { onConflict: "user_id,role" });
-    if (r1.error) throw new Error(r1.error.message);
+    const email = sensei.email.trim().toLowerCase();
 
-    const r2 = await supabaseAdmin
-      .from("sensei_users")
-      .upsert({ user_id: userId, sensei_id: data.sensei_id }, { onConflict: "user_id" });
-    if (r2.error) throw new Error(r2.error.message);
+    async function vincular(userId: string) {
+      const r1 = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: userId, role: "sensei" }, { onConflict: "user_id,role" });
+      if (r1.error) throw new Error("Não conseguimos dar o papel de sensei.");
+      const r2 = await supabaseAdmin
+        .from("sensei_users")
+        .upsert({ user_id: userId, sensei_id: data.sensei_id }, { onConflict: "user_id" });
+      if (r2.error) throw new Error("Não conseguimos vincular o sensei ao dojô.");
+    }
 
-    return { ok: true };
+    const convite = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+
+    if (convite.data?.user) {
+      await vincular(convite.data.user.id);
+      const gerado = await supabaseAdmin.auth.admin.generateLink({ type: "invite", email });
+      return {
+        situacao: "convidado",
+        email,
+        link: gerado.data?.properties?.action_link ?? null,
+      };
+    }
+
+    // O email já tem conta. Nunca mexemos na senha dela.
+    const existente = await supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email });
+    const userId = existente.data?.user?.id ?? null;
+
+    if (!userId) {
+      throw new Error(
+        "Não conseguimos enviar o convite agora. Verifique o email do sensei e tente novamente.",
+      );
+    }
+
+    if (!data.confirmar_vinculo) {
+      return { situacao: "conta_existente", email, link: null };
+    }
+
+    await vincular(userId);
+    return {
+      situacao: "vinculado",
+      email,
+      link: existente.data?.properties?.action_link ?? null,
+    };
   });

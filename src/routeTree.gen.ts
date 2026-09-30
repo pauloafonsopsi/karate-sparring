@@ -17,6 +17,7 @@ import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as MinhaAdesaoRouteImport } from './routes/minha-adesao'
 import { Route as SenseiRouteImport } from './routes/sensei'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAtletaRouteImport } from './routes/_authenticated/atleta'
 import { Route as AuthenticatedAdminDojosRouteImport } from './routes/_authenticated/admin_.dojos'
 
 const IndexRoute = IndexRouteImport.update({
@@ -58,6 +59,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAtletaRoute = AuthenticatedAtletaRouteImport.update({
+  id: '/atleta',
+  path: '/atleta',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminDojosRoute = AuthenticatedAdminDojosRouteImport.update({
   id: '/admin_/dojos',
   path: '/admin/dojos',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/minha-adesao': typeof MinhaAdesaoRoute
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/atleta': typeof AuthenticatedAtletaRoute
   '/admin/dojos': typeof AuthenticatedAdminDojosRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/minha-adesao': typeof MinhaAdesaoRoute
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/atleta': typeof AuthenticatedAtletaRoute
   '/admin/dojos': typeof AuthenticatedAdminDojosRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/minha-adesao': typeof MinhaAdesaoRoute
   '/sensei': typeof SenseiRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/atleta': typeof AuthenticatedAtletaRoute
   '/_authenticated/admin_/dojos': typeof AuthenticatedAdminDojosRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/minha-adesao'
     | '/sensei'
     | '/admin'
+    | '/atleta'
     | '/admin/dojos'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/minha-adesao'
     | '/sensei'
     | '/admin'
+    | '/atleta'
     | '/admin/dojos'
   id:
     | '__root__'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/minha-adesao'
     | '/sensei'
     | '/_authenticated/admin'
+    | '/_authenticated/atleta'
     | '/_authenticated/admin_/dojos'
   fileRoutesById: FileRoutesById
 }
@@ -198,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/atleta': {
+      id: '/_authenticated/atleta'
+      path: '/atleta'
+      fullPath: '/atleta'
+      preLoaderRoute: typeof AuthenticatedAtletaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin_/dojos': {
       id: '/_authenticated/admin_/dojos'
       path: '/admin/dojos'
@@ -210,11 +229,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAtletaRoute: typeof AuthenticatedAtletaRoute
   AuthenticatedAdminDojosRoute: typeof AuthenticatedAdminDojosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAtletaRoute: AuthenticatedAtletaRoute,
   AuthenticatedAdminDojosRoute: AuthenticatedAdminDojosRoute,
 }
 
