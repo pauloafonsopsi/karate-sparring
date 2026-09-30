@@ -86,6 +86,7 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
     });
     const userId = criado.data.user?.id;
     if (!userId) {
+      console.error("criarContaAtleta createUser", criado.error);
       throw new Error(
         criado.error?.message?.includes("already")
           ? "Já existe uma conta com este email. Entre com sua senha."
@@ -105,6 +106,7 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
       aceites_em: new Date().toISOString(),
     });
     if (perfil.error) {
+      console.error("criarContaAtleta perfil", perfil.error);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       throw new Error("Não conseguimos criar sua conta. Tente novamente em instantes.");
     }
