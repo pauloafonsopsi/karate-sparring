@@ -72,22 +72,6 @@ function Dojos() {
     },
   });
 
-  const { data: pagamentos } = useQuery({
-    queryKey: ["pagamentos-do-dojo"],
-    enabled: !!acesso?.sensei_id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pagamentos")
-        .select("lead_id, status, valor_sensei, created_at")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const pagamentoDoLead = (leadId: string) =>
-    (pagamentos ?? []).find((p) => p.lead_id === leadId) ?? null;
-
   async function sair() {
     await qc.cancelQueries();
     qc.clear();
@@ -190,20 +174,6 @@ function Dojos() {
                         </span>
                         <span>{dataBr(l.created_at)}</span>
                       </div>
-                      {(() => {
-                        const p = pagamentoDoLead(l.id);
-                        if (!p) return null;
-                        return (
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                            <Badge tone={p.status === "confirmado" ? "convertido" : p.status}>
-                              pagamento {p.status}
-                            </Badge>
-                            <span className="text-muted-fg">
-                              seu repasse R$ {Number(p.valor_sensei ?? 0).toFixed(2)}
-                            </span>
-                          </div>
-                        );
-                      })()}
                     </div>
                     {wa && (
                       <a href={wa} target="_blank" rel="noopener noreferrer">
