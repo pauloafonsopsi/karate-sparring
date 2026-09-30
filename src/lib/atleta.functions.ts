@@ -115,7 +115,6 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
       aceites_em: new Date().toISOString(),
     });
     if (perfil.error) {
-      console.error("criarContaAtleta perfil", perfil.error);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       throw new Error("Não conseguimos criar sua conta. Tente novamente em instantes.");
     }
