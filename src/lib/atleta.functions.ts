@@ -86,11 +86,13 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
     });
     const userId = criado.data.user?.id;
     if (!userId) {
-      console.error("criarContaAtleta createUser", criado.error);
+      const motivo = criado.error?.message ?? "";
       throw new Error(
-        criado.error?.message?.includes("already")
+        motivo.includes("already")
           ? "Já existe uma conta com este email. Entre com sua senha."
-          : "Não conseguimos criar sua conta. Tente novamente em instantes.",
+          : /weak|password/i.test(motivo)
+            ? "Escolha uma senha mais forte: misture letras, números e símbolos."
+            : "Não conseguimos criar sua conta. Tente novamente em instantes.",
       );
     }
 
