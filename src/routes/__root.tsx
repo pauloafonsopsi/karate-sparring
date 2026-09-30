@@ -3,6 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  type ErrorComponentProps,
   useRouter,
   HeadContent,
   Scripts,
@@ -35,7 +36,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -78,17 +79,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Karate Sparring · by Legends" },
+      { title: "Karate Legends Sparring · World League" },
       {
         name: "description",
         content:
-          "Treinos de sparring de karatê todos os sábados, com senseis licenciados em todo o Brasil.",
+          "A liga nacional de sparring de karatê. Treino semanal no seu dojô, presença, ranking e vaga no Legends Camp.",
       },
-      { property: "og:title", content: "Karate Sparring · by Legends" },
+      { property: "og:title", content: "Karate Legends Sparring · World League" },
       {
         property: "og:description",
         content:
-          "Treinos de sparring de karatê todos os sábados, com senseis licenciados em todo o Brasil.",
+          "A liga nacional de sparring de karatê. Treino semanal no seu dojô, presença, ranking e vaga no Legends Camp.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

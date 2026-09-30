@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -7,23 +7,22 @@ import { toast } from "sonner";
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
 import { criarLead, getAppConfig, getPublicSenseis, type PublicSensei } from "@/lib/app.functions";
-import { iniciarPagamento } from "@/lib/asaas.functions";
-import { UFS, isEmail, maskCpf, maskWhatsapp } from "@/lib/ufs";
+import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Karate Sparring · by Legends" },
+      { title: "Karate Legends Sparring · World League" },
       {
         name: "description",
         content:
-          "Treinos de sparring de karatê todos os sábados, com senseis licenciados em todo o Brasil.",
+          "Faça sua pré-inscrição na World League: treino semanal de sparring no dojô da sua região, presença e ranking.",
       },
-      { property: "og:title", content: "Karate Sparring · by Legends" },
+      { property: "og:title", content: "Karate Legends Sparring · World League" },
       {
         property: "og:description",
         content:
-          "Treinos de sparring de karatê todos os sábados, com senseis licenciados em todo o Brasil.",
+          "Treino semanal de sparring no dojô da sua região, com presença e ranking nacional.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -39,7 +38,7 @@ type Dados = { nome: string; whatsapp: string; email: string; cidade: string; uf
 function Progresso({ step }: { step: number }) {
   return (
     <div className="flex gap-1.5">
-      {[1, 2, 3, 4].map((n) => (
+      {[1, 2, 3].map((n) => (
         <div key={n} className={`h-0.5 w-8 ${n <= step ? "bg-brand" : "bg-line"}`} />
       ))}
     </div>
@@ -59,9 +58,9 @@ function Passo({ n, titulo, children }: { n: string; titulo: string; children: R
 }
 
 function Triagem() {
+  const navigate = useNavigate();
   const configFn = useServerFn(getAppConfig);
   const publicSenseisFn = useServerFn(getPublicSenseis);
-  const pagamentoFn = useServerFn(iniciarPagamento);
   const criarLeadFn = useServerFn(criarLead);
 
   const { data: config } = useQuery({
@@ -85,12 +84,9 @@ function Triagem() {
     cidade: "",
     uf: "",
   });
-  const [leadId, setLeadId] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [pronto, setPronto] = useState<string | null>(null);
   const [aceite, setAceite] = useState(false);
-  const [cpf, setCpf] = useState("");
-  const [forma, setForma] = useState<"PIX" | "CREDIT_CARD">("PIX");
 
   const inscricoesAbertas = config?.inscricoes_abertas !== false;
   const modoPiloto = config?.modo_piloto !== false;
@@ -131,41 +127,10 @@ function Triagem() {
     }
     setEnviando(true);
     try {
-      const id = leadId ?? (await salvarLead(sensei?.id ?? null));
-      setLeadId(id);
-      setStep(4);
+      await salvarLead(sensei?.id ?? null);
+      void navigate({ to: "/confirmado" });
     } catch {
       toast.error("Não conseguimos salvar seus dados. Verifique a conexão e tente de novo.");
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  async function escolherProduto(produto: "mensal" | "avulso") {
-    if (!leadId) return;
-    if (cpf.replace(/\D/g, "").length !== 11) {
-      toast.error("Informe o CPF do pagador.");
-      return;
-    }
-    setEnviando(true);
-    try {
-      const { url, mensagem } = await pagamentoFn({
-        data: { lead_id: leadId, produto, billing_type: forma, cpf },
-      });
-      if (!url) {
-        setPronto(
-          mensagem ??
-            "Inscrições para este dojô abrem em breve. Seu cadastro foi salvo e avisaremos você no WhatsApp.",
-        );
-        return;
-      }
-      window.location.href = url;
-    } catch (e) {
-      toast.error(
-        e instanceof Error && e.message
-          ? e.message
-          : "Falha ao abrir o pagamento. Tente novamente em instantes.",
-      );
     } finally {
       setEnviando(false);
     }
@@ -180,7 +145,7 @@ function Triagem() {
     setEnviando(true);
     try {
       await salvarLead(null);
-      setPronto("Você será o primeiro a saber quando o Karate Sparring chegar ao seu estado.");
+      setPronto("Você será o primeiro a saber quando a World League chegar ao seu estado.");
     } catch {
       toast.error("Não conseguimos salvar seus dados. Verifique a conexão e tente de novo.");
     } finally {
@@ -248,7 +213,7 @@ function Triagem() {
         <header className="mb-10">
           <Wordmark size="lg" />
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-fg">
-            Treinos de sparring todos os sábados, no seu estado, com sensei licenciado.
+            Treino semanal de sparring no dojô da sua região, com presença e ranking nacional.
           </p>
           <div className="mt-6">
             <Link to="/sensei" className="eyebrow hover:text-foreground">
@@ -258,7 +223,7 @@ function Triagem() {
         </header>
 
         <div className="mb-8">
-          <Progresso step={pronto ? 4 : espera ? 3 : step} />
+          <Progresso step={pronto ? 3 : espera ? 3 : step} />
         </div>
 
         {pronto ? (
@@ -312,7 +277,7 @@ function Triagem() {
                     key={s.id}
                     onClick={() => {
                       setSensei(s);
-                      setStep(inscricoesAbertas ? 3 : 3);
+                      setStep(3);
                     }}
                     className="flex w-full items-center gap-4 border border-line bg-surface p-4 text-left hover:border-brand"
                   >
@@ -383,7 +348,7 @@ function Triagem() {
                   .
                 </Check>
                 <Btn full disabled={enviando} onClick={continuarCadastro}>
-                  {enviando ? "Salvando" : "Continuar"}
+                  {enviando ? "Enviando" : "Fazer pré-inscrição"}
                 </Btn>
               </div>
               <Btn variant="ghost" className="mt-4 px-0" onClick={() => setStep(2)}>
@@ -399,71 +364,7 @@ function Triagem() {
               {formularioEspera}
             </Passo>
           )
-        ) : (
-          <Passo n="04" titulo="Como você quer treinar?">
-            <div className="space-y-4">
-              <Field label="CPF do pagador">
-                <TextInput
-                  value={cpf}
-                  inputMode="numeric"
-                  placeholder="000.000.000-00"
-                  onChange={(e) => setCpf(maskCpf(e.target.value))}
-                />
-              </Field>
-              <div>
-                <div className="eyebrow mb-2">Forma de pagamento</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      ["PIX", "Pix"],
-                      ["CREDIT_CARD", "Cartão"],
-                    ] as const
-                  ).map(([valor, rotulo]) => (
-                    <button
-                      key={valor}
-                      onClick={() => setForma(valor)}
-                      className={`display min-h-12 border bg-surface text-sm ${
-                        forma === valor ? "border-brand text-foreground" : "border-line text-muted-fg"
-                      }`}
-                    >
-                      {rotulo}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="border-2 border-brand bg-surface p-6">
-                <div className="eyebrow text-brand">Mensal</div>
-                <div className="fight-number mt-2">R$ 100</div>
-                <p className="mt-2 text-sm text-muted-fg">
-                  Todos os sábados do mês, cobrança automática.
-                </p>
-                <Btn full className="mt-5" disabled={enviando} onClick={() => escolherProduto("mensal")}>
-                  Quero treinar todo sábado
-                </Btn>
-              </div>
-              <div className="border border-line bg-surface p-6">
-                <div className="eyebrow">Avulso</div>
-                <div className="fight-number mt-2">R$ 30</div>
-                <p className="mt-2 text-sm text-muted-fg">Um sábado para experimentar.</p>
-                <Btn
-                  full
-                  variant="outline"
-                  className="mt-5"
-                  disabled={enviando}
-                  onClick={() => escolherProduto("avulso")}
-                >
-                  Quero experimentar
-                </Btn>
-              </div>
-              {forma === "CREDIT_CARD" && (
-                <p className="text-xs text-muted-fg">
-                  No cartão, a cobrança mensal é renovada automaticamente até você pedir o
-                  cancelamento.
-                </p>
-              )}
-            </div>
-          </Passo>
-        )}
+        ) : null}
       </div>
     </main>
   );

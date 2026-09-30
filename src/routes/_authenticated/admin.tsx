@@ -7,18 +7,17 @@ import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
 import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
-import { criarCobrancaAdesao, criarSubcontaSensei } from "@/lib/asaas.functions";
-import { UFS, maskCep, maskCpf } from "@/lib/ufs";
+import { UFS } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Painel · Karate Sparring" },
-      { name: "description", content: "Painel de gestão do programa Karate Sparring." },
+      { title: "Painel · Karate Legends Sparring" },
+      { name: "description", content: "Painel de gestão da World League." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Painel · Karate Sparring" },
-      { property: "og:description", content: "Painel de gestão do programa Karate Sparring." },
+      { property: "og:title", content: "Painel · Karate Legends Sparring" },
+      { property: "og:description", content: "Painel de gestão da World League." },
     ],
   }),
   component: Admin,
@@ -38,17 +37,8 @@ type Sensei = {
   foto_url: string | null;
   status: string;
   piloto: boolean;
-  link_afiliado_mensal: string | null;
-  link_afiliado_avulso: string | null;
-  data_adesao: string | null;
   obs: string | null;
   created_at: string | null;
-  asaas_account_id: string | null;
-  asaas_wallet_id: string | null;
-  asaas_status: string | null;
-  adesao_paga: boolean;
-  adesao_invoice_url: string | null;
-  adesao_asaas_id: string | null;
 };
 
 type Lead = {
@@ -64,20 +54,7 @@ type Lead = {
   created_at: string | null;
 };
 
-type Orfao = {
-  id: string;
-  sale_id: string | null;
-  email_pagador: string | null;
-  documento_pagador: string | null;
-  payload: unknown;
-  created_at: string | null;
-};
-
-const ABAS = ["Senseis", "Leads", "Receita", "Conciliação", "Config"] as const;
-
-function reais(v: number) {
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+const ABAS = ["Senseis", "Leads", "Config"] as const;
 
 function dataBr(v: string | null) {
   return v ? new Date(v).toLocaleDateString("pt-BR") : "—";
@@ -127,8 +104,6 @@ function Admin() {
         <div className="mt-8">
           {aba === "Senseis" && <AbaSenseis />}
           {aba === "Leads" && <AbaLeads />}
-          {aba === "Receita" && <AbaReceita />}
-          {aba === "Conciliação" && <AbaConciliacao />}
           {aba === "Config" && <AbaConfig />}
         </div>
       </div>
@@ -317,66 +292,8 @@ function PainelSensei({
   onSave: (patch: Partial<Sensei>) => void;
 }) {
   const [f, setF] = useState({
-    link_afiliado_mensal: sensei.link_afiliado_mensal ?? "",
-    link_afiliado_avulso: sensei.link_afiliado_avulso ?? "",
     foto_url: sensei.foto_url ?? "",
-    data_adesao: sensei.data_adesao ?? "",
     obs: sensei.obs ?? "",
-  });
-
-  const semConta = !sensei.asaas_wallet_id;
-
-  const [conta, setConta] = useState({
-    cpf_cnpj: "",
-    nascimento: "",
-    cep: "",
-    endereco: "",
-    numero: "",
-    bairro: "",
-    faturamento_mensal: "3000",
-  });
-  const criarConta = useMutation({
-    mutationFn: () =>
-      criarSubcontaSensei({
-        data: {
-          sensei_id: sensei.id,
-          cpf_cnpj: conta.cpf_cnpj,
-          nascimento: conta.nascimento,
-          cep: conta.cep,
-          endereco: conta.endereco.trim(),
-          numero: conta.numero.trim(),
-          bairro: conta.bairro.trim(),
-          faturamento_mensal: Number(conta.faturamento_mensal || 0),
-        },
-      }),
-    onSuccess: () => {
-      toast.success("Conta de recebimento criada.");
-      onSave({});
-    },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Não foi possível criar a conta."),
-  });
-
-  const [adesao, setAdesao] = useState<{ cpf_cnpj: string; billing_type: "PIX" | "CREDIT_CARD" }>({
-    cpf_cnpj: "",
-    billing_type: "CREDIT_CARD",
-  });
-  const cobrarAdesao = useMutation({
-    mutationFn: () =>
-      criarCobrancaAdesao({
-        data: {
-          sensei_id: sensei.id,
-          cpf_cnpj: adesao.cpf_cnpj,
-          billing_type: adesao.billing_type,
-        },
-      }),
-    onSuccess: (r: { url: string }) => {
-      toast.success("Cobrança da adesão criada.");
-      onSave({});
-      if (r.url) window.open(r.url, "_blank");
-    },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Não foi possível criar a cobrança."),
   });
 
   const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
@@ -435,29 +352,10 @@ function PainelSensei({
         </dl>
 
         <div className="mt-6 space-y-4">
-          <Field label="Link afiliado mensal">
-            <TextInput
-              value={f.link_afiliado_mensal}
-              onChange={(e) => setF({ ...f, link_afiliado_mensal: e.target.value })}
-            />
-          </Field>
-          <Field label="Link afiliado avulso">
-            <TextInput
-              value={f.link_afiliado_avulso}
-              onChange={(e) => setF({ ...f, link_afiliado_avulso: e.target.value })}
-            />
-          </Field>
           <Field label="Foto (URL)">
             <TextInput
               value={f.foto_url}
               onChange={(e) => setF({ ...f, foto_url: e.target.value })}
-            />
-          </Field>
-          <Field label="Data de adesão">
-            <TextInput
-              type="date"
-              value={f.data_adesao}
-              onChange={(e) => setF({ ...f, data_adesao: e.target.value })}
             />
           </Field>
           <Field label="Observações">
@@ -468,10 +366,7 @@ function PainelSensei({
             variant="outline"
             onClick={() =>
               onSave({
-                link_afiliado_mensal: f.link_afiliado_mensal.trim() || null,
-                link_afiliado_avulso: f.link_afiliado_avulso.trim() || null,
                 foto_url: f.foto_url.trim() || null,
-                data_adesao: f.data_adesao || null,
                 obs: f.obs.trim() || null,
               })
             }
@@ -487,137 +382,15 @@ function PainelSensei({
             </Btn>
           )}
           {sensei.status === "aprovado" && (
-            <>
-              <Btn full disabled={semConta} onClick={() => onSave({ status: "ativo" })}>
-                Ativar
-              </Btn>
-              {semConta && (
-                <p className="text-xs text-brand">Crie a conta de recebimento do sensei</p>
-              )}
-            </>
+            <Btn full onClick={() => onSave({ status: "ativo" })}>
+              Ativar
+            </Btn>
           )}
           {sensei.status === "ativo" && (
             <Btn full variant="outline" onClick={() => onSave({ status: "inativo" })}>
               Desativar
             </Btn>
           )}
-        </div>
-
-        <div className="mt-8 space-y-4 border-t border-line pt-6">
-          <p className="eyebrow">Conta de recebimento (repasse automático)</p>
-          {semConta ? (
-            <>
-              <Field label="CPF ou CNPJ">
-                <TextInput
-                  value={conta.cpf_cnpj}
-                  inputMode="numeric"
-                  onChange={(e) => setConta({ ...conta, cpf_cnpj: maskCpf(e.target.value) })}
-                />
-              </Field>
-              <Field label="Data de nascimento">
-                <TextInput
-                  type="date"
-                  value={conta.nascimento}
-                  onChange={(e) => setConta({ ...conta, nascimento: e.target.value })}
-                />
-              </Field>
-              <Field label="CEP">
-                <TextInput
-                  value={conta.cep}
-                  inputMode="numeric"
-                  onChange={(e) => setConta({ ...conta, cep: maskCep(e.target.value) })}
-                />
-              </Field>
-              <Field label="Endereço">
-                <TextInput
-                  value={conta.endereco}
-                  onChange={(e) => setConta({ ...conta, endereco: e.target.value })}
-                />
-              </Field>
-              <Field label="Número">
-                <TextInput
-                  value={conta.numero}
-                  onChange={(e) => setConta({ ...conta, numero: e.target.value })}
-                />
-              </Field>
-              <Field label="Bairro">
-                <TextInput
-                  value={conta.bairro}
-                  onChange={(e) => setConta({ ...conta, bairro: e.target.value })}
-                />
-              </Field>
-              <Field label="Faturamento mensal estimado (R$)">
-                <TextInput
-                  value={conta.faturamento_mensal}
-                  inputMode="numeric"
-                  onChange={(e) =>
-                    setConta({ ...conta, faturamento_mensal: e.target.value.replace(/\D/g, "") })
-                  }
-                />
-              </Field>
-              <Btn full disabled={criarConta.isPending} onClick={() => criarConta.mutate()}>
-                {criarConta.isPending ? "Criando" : "Criar conta de recebimento"}
-              </Btn>
-              <p className="text-xs text-muted-fg">
-                Sem essa conta o sensei não recebe o repasse e não pode ser ativado.
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-muted-fg">
-              Conta criada. Repasse automático de R$ 80 (mensal) e R$ 20 (avulso) por atleta.
-            </p>
-          )}
-        </div>
-
-        <div className="mt-8 space-y-4 border-t border-line pt-6">
-          <p className="eyebrow">Adesão do sensei · 12x R$ 150 no cartão ou 12x R$ 200 no Pix</p>
-          <div className="flex justify-between gap-4 text-sm">
-            <span className="text-muted-fg">Adesão paga</span>
-            <span>{sensei.adesao_paga ? "sim" : "não"}</span>
-          </div>
-          {sensei.adesao_invoice_url ? (
-            <a
-              href={sensei.adesao_invoice_url}
-              target="_blank"
-              rel="noreferrer"
-              className="block break-all text-sm text-brand underline"
-            >
-              Abrir cobrança da adesão
-            </a>
-          ) : null}
-          <Field label="CPF ou CNPJ do sensei (pagador)">
-            <TextInput
-              value={adesao.cpf_cnpj}
-              inputMode="numeric"
-              onChange={(e) => setAdesao({ ...adesao, cpf_cnpj: maskCpf(e.target.value) })}
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-2">
-            {(
-              [
-                ["CREDIT_CARD", "Cartão 12x"],
-                ["PIX", "Pix mensal"],
-              ] as const
-            ).map(([valor, label]) => (
-              <button
-                key={valor}
-                onClick={() => setAdesao({ ...adesao, billing_type: valor })}
-                className={`border p-3 text-sm ${
-                  adesao.billing_type === valor ? "border-brand text-fg" : "border-line text-muted-fg"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <Btn
-            full
-            variant="outline"
-            disabled={adesao.cpf_cnpj.replace(/\D/g, "").length < 11 || cobrarAdesao.isPending}
-            onClick={() => cobrarAdesao.mutate()}
-          >
-            {cobrarAdesao.isPending ? "Gerando" : "Gerar cobrança da adesão"}
-          </Btn>
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
@@ -811,120 +584,6 @@ function AbaLeads() {
   );
 }
 
-/* ---------------- CONCILIAÇÃO ---------------- */
-
-function AbaConciliacao() {
-  const qc = useQueryClient();
-  const [alvo, setAlvo] = useState<Orfao | null>(null);
-  const [busca, setBusca] = useState("");
-
-  const { data: orfaos } = useQuery({
-    queryKey: ["admin-orfaos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pagamentos_orfaos")
-        .select("*")
-        .eq("conciliado", false)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Orfao[];
-    },
-  });
-
-  const { data: leads } = useQuery({
-    queryKey: ["conciliacao-leads", busca],
-    enabled: !!alvo && busca.trim().length > 1,
-    queryFn: async () => {
-      const t = `%${busca.trim()}%`;
-      const { data, error } = await supabase
-        .from("leads_atletas")
-        .select("id, nome, email, uf, status")
-        .or(`nome.ilike.${t},email.ilike.${t}`)
-        .limit(10);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const vincular = useMutation({
-    mutationFn: async ({ orfao, leadId }: { orfao: Orfao; leadId: string }) => {
-      const e1 = await supabase
-        .from("leads_atletas")
-        .update({
-          status: "convertido",
-          greenn_sale_id: orfao.sale_id,
-          convertido_em: new Date().toISOString(),
-        })
-        .eq("id", leadId);
-      if (e1.error) throw e1.error;
-      const e2 = await supabase
-        .from("pagamentos_orfaos")
-        .update({ conciliado: true, lead_id: leadId })
-        .eq("id", orfao.id);
-      if (e2.error) throw e2.error;
-    },
-    onSuccess: async () => {
-      setAlvo(null);
-      setBusca("");
-      await qc.invalidateQueries({ queryKey: ["admin-orfaos"] });
-      await qc.invalidateQueries({ queryKey: ["admin-leads"] });
-      toast.success("Pagamento conciliado.");
-    },
-    onError: () => toast.error("Não foi possível conciliar."),
-  });
-
-  return (
-    <div className="space-y-3">
-      {(orfaos ?? []).length === 0 && (
-        <p className="border border-line bg-surface p-6 text-sm text-muted-fg">
-          Nenhum pagamento pendente de conciliação.
-        </p>
-      )}
-      {(orfaos ?? []).map((o) => (
-        <div key={o.id} className="border border-line bg-surface p-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="font-semibold">{o.email_pagador ?? "sem email"}</div>
-              <div className="mt-1 text-xs text-muted-fg">
-                venda {o.sale_id ?? "—"} · {dataBr(o.created_at)} · doc{" "}
-                {o.documento_pagador ?? "—"}
-              </div>
-              <pre className="mt-3 max-h-24 overflow-auto border border-line bg-background p-2 text-[11px] text-muted-fg">
-                {JSON.stringify(o.payload, null, 1).slice(0, 600)}
-              </pre>
-            </div>
-            <Btn variant="outline" onClick={() => setAlvo(o)}>
-              Vincular a lead
-            </Btn>
-          </div>
-
-          {alvo?.id === o.id && (
-            <div className="mt-4 border-t border-line pt-4">
-              <Field label="Buscar lead por nome ou email">
-                <TextInput value={busca} onChange={(e) => setBusca(e.target.value)} />
-              </Field>
-              <div className="mt-3 space-y-2">
-                {(leads ?? []).map((l) => (
-                  <div
-                    key={l.id}
-                    className="flex flex-wrap items-center justify-between gap-3 border border-line p-3 text-sm"
-                  >
-                    <span>
-                      {l.nome} · <span className="text-muted-fg">{l.email}</span> ·{" "}
-                      <Badge tone={l.status}>{l.status}</Badge>
-                    </span>
-                    <Btn onClick={() => vincular.mutate({ orfao: o, leadId: l.id })}>Vincular</Btn>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /* ---------------- CONFIG ---------------- */
 
 function AbaConfig() {
@@ -965,257 +624,10 @@ function AbaConfig() {
     );
   };
 
-  const producao = data?.get("asaas_ambiente") === "production";
-
   return (
     <div className="max-w-xl space-y-4">
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
-
-      <div className="mt-8 space-y-4 border-t border-line pt-6">
-        <p className="eyebrow">Pagamentos dos atletas</p>
-        <ValorConfig
-          chave="preco_mensal"
-          label="Preço mensal (R$)"
-          atual={data?.get("preco_mensal") ?? "100"}
-          onSalvar={(valor) => set.mutate({ chave: "preco_mensal", valor })}
-        />
-        <ValorConfig
-          chave="repasse_mensal"
-          label="Repasse ao sensei no mensal (R$)"
-          atual={data?.get("repasse_mensal") ?? "80"}
-          onSalvar={(valor) => set.mutate({ chave: "repasse_mensal", valor })}
-        />
-        <ValorConfig
-          chave="preco_avulso"
-          label="Preço avulso (R$)"
-          atual={data?.get("preco_avulso") ?? "30"}
-          onSalvar={(valor) => set.mutate({ chave: "preco_avulso", valor })}
-        />
-        <ValorConfig
-          chave="repasse_avulso"
-          label="Repasse ao sensei no avulso (R$)"
-          atual={data?.get("repasse_avulso") ?? "20"}
-          onSalvar={(valor) => set.mutate({ chave: "repasse_avulso", valor })}
-        />
-        <p className="eyebrow pt-4">Adesão do sensei</p>
-        <ValorConfig
-          chave="adesao_total"
-          label="Valor total da adesão (R$)"
-          atual={data?.get("adesao_total") ?? "1800"}
-          onSalvar={(valor) => set.mutate({ chave: "adesao_total", valor })}
-        />
-        <ValorConfig
-          chave="adesao_parcela"
-          label="Parcela no cartão (R$)"
-          atual={data?.get("adesao_parcela") ?? "150"}
-          onSalvar={(valor) => set.mutate({ chave: "adesao_parcela", valor })}
-        />
-        <ValorConfig
-          chave="adesao_parcela_pix"
-          label="Parcela no Pix mensal (R$)"
-          atual={data?.get("adesao_parcela_pix") ?? "200"}
-          onSalvar={(valor) => set.mutate({ chave: "adesao_parcela_pix", valor })}
-        />
-        <ValorConfig
-          chave="adesao_parcelas"
-          label="Número de parcelas"
-          atual={data?.get("adesao_parcelas") ?? "12"}
-          onSalvar={(valor) => set.mutate({ chave: "adesao_parcelas", valor })}
-        />
-        <div className="flex items-center justify-between border border-line bg-surface p-4">
-          <span className="text-sm">
-            Cobranças reais {producao ? "ligadas" : "desligadas (modo de teste)"}
-          </span>
-          <button
-            onClick={() =>
-              set.mutate({
-                chave: "asaas_ambiente",
-                valor: producao ? "sandbox" : "production",
-              })
-            }
-            className={`h-7 w-12 border ${producao ? "border-brand bg-brand" : "border-line"}`}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ValorConfig({
-  chave,
-  label,
-  atual,
-  onSalvar,
-}: {
-  chave: string;
-  label: string;
-  atual: string;
-  onSalvar: (valor: string) => void;
-}) {
-  const [v, setV] = useState<string | null>(null);
-  const valor = v ?? atual;
-  return (
-    <div key={chave} className="flex items-end gap-3">
-      <div className="flex-1">
-        <Field label={label}>
-          <TextInput
-            value={valor}
-            inputMode="numeric"
-            onChange={(e) => setV(e.target.value.replace(/[^\d.]/g, ""))}
-          />
-        </Field>
-      </div>
-      <Btn variant="outline" onClick={() => onSalvar(valor.trim())}>
-        Salvar
-      </Btn>
-    </div>
-  );
-}
-
-/* ---------------- RECEITA ---------------- */
-
-type LinhaReceita = {
-  sensei_id: string | null;
-  nome: string;
-  mensal: number;
-  avulso: number;
-  adesao: number;
-  repasse: number;
-};
-
-function AbaReceita() {
-  const [somenteConfirmados, setSomenteConfirmados] = useState(true);
-
-  const { data: senseis } = useQuery({
-    queryKey: ["receita-senseis"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("senseis").select("id, nome").order("nome");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: pagamentos } = useQuery({
-    queryKey: ["receita-pagamentos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pagamentos")
-        .select("sensei_id, produto, valor_total, valor_sensei, status");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const nomes = new Map((senseis ?? []).map((s) => [s.id, s.nome]));
-  const linhas = new Map<string, LinhaReceita>();
-  const total = { mensal: 0, avulso: 0, adesao: 0, repasse: 0 };
-
-  for (const p of pagamentos ?? []) {
-    if (somenteConfirmados && p.status !== "confirmado") continue;
-    const chave = p.sensei_id ?? "sem-sensei";
-    const linha: LinhaReceita = linhas.get(chave) ?? {
-      sensei_id: p.sensei_id,
-      nome: (p.sensei_id && nomes.get(p.sensei_id)) || "Sem sensei",
-      mensal: 0,
-      avulso: 0,
-      adesao: 0,
-      repasse: 0,
-    };
-
-    const valor = Number(p.valor_total ?? 0);
-    const repasse = Number(p.valor_sensei ?? 0);
-    if (p.produto === "mensal") {
-      linha.mensal += valor;
-      total.mensal += valor;
-    } else if (p.produto === "avulso") {
-      linha.avulso += valor;
-      total.avulso += valor;
-    } else if (p.produto === "adesao") {
-      linha.adesao += valor;
-      total.adesao += valor;
-    }
-    linha.repasse += repasse;
-    total.repasse += repasse;
-    linhas.set(chave, linha);
-  }
-
-  const lista = [...linhas.values()].sort(
-    (a, b) => b.mensal + b.avulso + b.adesao - (a.mensal + a.avulso + a.adesao),
-  );
-  const bruto = total.mensal + total.avulso + total.adesao;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 border border-line bg-surface p-4">
-        <span className="text-sm">
-          {somenteConfirmados ? "Somente pagamentos confirmados" : "Todos os pagamentos gerados"}
-        </span>
-        <button
-          onClick={() => setSomenteConfirmados((v) => !v)}
-          className={`h-7 w-12 border ${somenteConfirmados ? "border-brand bg-brand" : "border-line"}`}
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {(
-          [
-            ["Mensalidades", total.mensal],
-            ["Avulsos", total.avulso],
-            ["Adesões anuais", total.adesao],
-            ["Total bruto", bruto],
-          ] as [string, number][]
-        ).map(([label, v]) => (
-          <div key={label} className="border border-line bg-surface p-5">
-            <p className="eyebrow">{label}</p>
-            <p className="mt-3 text-2xl">{reais(v)}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="border border-line bg-surface p-5">
-          <p className="eyebrow">Repasse aos senseis</p>
-          <p className="mt-3 text-2xl">{reais(total.repasse)}</p>
-        </div>
-        <div className="border border-line bg-surface p-5">
-          <p className="eyebrow">Receita líquida da organização</p>
-          <p className="mt-3 text-2xl text-brand">{reais(bruto - total.repasse)}</p>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto border border-line">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-line text-left">
-              {["Sensei", "Mensal", "Avulso", "Adesão", "Repasse", "Total"].map((h) => (
-                <th key={h} className="eyebrow px-4 py-3">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {lista.map((l) => (
-              <tr key={l.sensei_id ?? "sem-sensei"} className="border-b border-line last:border-0">
-                <td className="px-4 py-3">{l.nome}</td>
-                <td className="px-4 py-3">{reais(l.mensal)}</td>
-                <td className="px-4 py-3">{reais(l.avulso)}</td>
-                <td className="px-4 py-3">{reais(l.adesao)}</td>
-                <td className="px-4 py-3 text-muted-fg">{reais(l.repasse)}</td>
-                <td className="px-4 py-3">{reais(l.mensal + l.avulso + l.adesao)}</td>
-              </tr>
-            ))}
-            {lista.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-fg">
-                  Nenhum pagamento registrado ainda.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

@@ -18,7 +18,6 @@ import { Route as MinhaAdesaoRouteImport } from './routes/minha-adesao'
 import { Route as SenseiRouteImport } from './routes/sensei'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminDojosRouteImport } from './routes/_authenticated/admin_.dojos'
-import { Route as ApiPublicWebhooksAsaasRouteImport } from './routes/api/public/webhooks/asaas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,11 +63,6 @@ const AuthenticatedAdminDojosRoute = AuthenticatedAdminDojosRouteImport.update({
   path: '/admin/dojos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicWebhooksAsaasRoute = ApiPublicWebhooksAsaasRouteImport.update({
-  id: '/api/public/webhooks/asaas',
-  path: '/api/public/webhooks/asaas',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin/dojos': typeof AuthenticatedAdminDojosRoute
-  '/api/public/webhooks/asaas': typeof ApiPublicWebhooksAsaasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin/dojos': typeof AuthenticatedAdminDojosRoute
-  '/api/public/webhooks/asaas': typeof ApiPublicWebhooksAsaasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/sensei': typeof SenseiRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/admin_/dojos': typeof AuthenticatedAdminDojosRoute
-  '/api/public/webhooks/asaas': typeof ApiPublicWebhooksAsaasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -116,7 +107,6 @@ export interface FileRouteTypes {
     | '/sensei'
     | '/admin'
     | '/admin/dojos'
-    | '/api/public/webhooks/asaas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -127,7 +117,6 @@ export interface FileRouteTypes {
     | '/sensei'
     | '/admin'
     | '/admin/dojos'
-    | '/api/public/webhooks/asaas'
   id:
     | '__root__'
     | '/'
@@ -139,7 +128,6 @@ export interface FileRouteTypes {
     | '/sensei'
     | '/_authenticated/admin'
     | '/_authenticated/admin_/dojos'
-    | '/api/public/webhooks/asaas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -150,7 +138,6 @@ export interface RootRouteChildren {
   ConfirmadoRoute: typeof ConfirmadoRoute
   MinhaAdesaoRoute: typeof MinhaAdesaoRoute
   SenseiRoute: typeof SenseiRoute
-  ApiPublicWebhooksAsaasRoute: typeof ApiPublicWebhooksAsaasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -218,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDojosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/webhooks/asaas': {
-      id: '/api/public/webhooks/asaas'
-      path: '/api/public/webhooks/asaas'
-      fullPath: '/api/public/webhooks/asaas'
-      preLoaderRoute: typeof ApiPublicWebhooksAsaasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -249,7 +229,6 @@ const rootRouteChildren: RootRouteChildren = {
   ConfirmadoRoute: ConfirmadoRoute,
   MinhaAdesaoRoute: MinhaAdesaoRoute,
   SenseiRoute: SenseiRoute,
-  ApiPublicWebhooksAsaasRoute: ApiPublicWebhooksAsaasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -10,17 +10,17 @@ import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 export const Route = createFileRoute("/sensei")({
   head: () => ({
     meta: [
-      { title: "Leve o Karate Sparring para o seu dojô · by Legends" },
+      { title: "Leve a World League para o seu dojô · Karate Legends Sparring" },
       {
         name: "description",
         content:
-          "Programa nacional de sparring aos sábados. Você conduz, a metodologia chega pronta toda semana. Aplique como sensei licenciado.",
+          "Você escolhe o dia do treino semanal, conduz com o método da liga e cobra dos seus alunos o que quiser. R$ 400/mês, com desconto de R$ 20 por atleta filiado.",
       },
-      { property: "og:title", content: "Leve o Karate Sparring para o seu dojô" },
+      { property: "og:title", content: "Leve a World League para o seu dojô" },
       {
         property: "og:description",
         content:
-          "Programa nacional de sparring aos sábados. R$ 80 líquidos por aluno mensal, direto na sua conta.",
+          "R$ 400/mês, menos R$ 20 por atleta filiado. Com 20 atletas, sua filiação zera.",
       },
     ],
   }),
@@ -42,11 +42,10 @@ const GRADUACOES = [
 const TEMPOS = ["menos de 5", "5 a 10", "10 a 20", "mais de 20"];
 
 const PASSOS = [
-  "Você recebe acesso à biblioteca de técnicas e ao roteiro de cada sábado.",
-  "Um vídeo curto por semana ensina você a conduzir o treino.",
-  "45 minutos de drills, depois sparring rotativo sob sua gestão.",
-  "A lição final chega em vídeo e por escrito, com guia de fala.",
-  "Seus alunos se inscrevem pelo SEU link e o repasse cai automático.",
+  "Aplique e seja aprovado.",
+  "Cadastre seu dojô e o dia do treino semanal.",
+  "Conduza o treino com o método da liga.",
+  "Seus atletas se filiam, marcam presença e disputam o ranking de onde saem os convocados do Legends Camp.",
 ];
 
 function PaginaSensei() {
@@ -119,28 +118,25 @@ function PaginaSensei() {
         <header className="mb-12">
           <Wordmark size="sm" />
           <h1 className="mt-10 text-[10vw] leading-[0.9] sm:text-5xl">
-            Leve o Karate Sparring para o seu dojô
+            Leve a World League para o seu dojô
           </h1>
           <p className="mt-6 text-sm leading-relaxed text-muted-fg">
-            Programa nacional de sparring aos sábados. Você conduz, a metodologia chega pronta toda
-            semana.
+            Você escolhe o dia do treino, cobra dos seus alunos o que quiser e recebe direto.
           </p>
         </header>
 
         <section className="mb-14 space-y-8 border-y border-line py-10">
           <div>
-            <div className="fight-number text-brand">R$ 80</div>
-            <p className="mt-2 text-sm text-muted-fg">
-              por aluno mensal, líquido, direto na sua conta
-            </p>
+            <div className="fight-number text-brand">R$ 400</div>
+            <p className="mt-2 text-sm text-muted-fg">por mês, sua filiação de sensei</p>
           </div>
           <div>
-            <div className="fight-number">R$ 20</div>
-            <p className="mt-2 text-sm text-muted-fg">por treino avulso</p>
+            <div className="fight-number">−R$ 20</div>
+            <p className="mt-2 text-sm text-muted-fg">de desconto por atleta filiado do seu dojô</p>
           </div>
           <div>
-            <div className="fight-number">3 alunos</div>
-            <p className="mt-2 text-sm text-muted-fg">pagam sua adesão anual</p>
+            <div className="fight-number">20 atletas</div>
+            <p className="mt-2 text-sm text-muted-fg">sua filiação zera</p>
           </div>
         </section>
 
@@ -154,17 +150,6 @@ function PaginaSensei() {
               </li>
             ))}
           </ol>
-        </section>
-
-        <section className="mb-14 border border-line bg-surface p-6">
-          <h2 className="mb-4 text-xl">Investimento</h2>
-          <p className="text-sm leading-relaxed text-muted-fg">
-            Condição de fundador: 1º ano por R$ 1.800 em 12x de R$ 150 no cartão parcelado. No Pix
-            mensal, são 12 parcelas de R$ 200. A partir do 2º ano: R$ 2.400/ano.
-          </p>
-          <Link to="/adesao" className="mt-6 block">
-            <Btn full>Fazer minha adesão anual</Btn>
-          </Link>
         </section>
 
         <section>
