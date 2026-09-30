@@ -14,6 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      atleta_dojos: {
+        Row: {
+          ate: string | null
+          atleta_id: string
+          created_at: string
+          desde: string
+          id: string
+          obs: string | null
+          origem: string
+          sensei_id: string
+        }
+        Insert: {
+          ate?: string | null
+          atleta_id: string
+          created_at?: string
+          desde?: string
+          id?: string
+          obs?: string | null
+          origem?: string
+          sensei_id: string
+        }
+        Update: {
+          ate?: string | null
+          atleta_id?: string
+          created_at?: string
+          desde?: string
+          id?: string
+          obs?: string | null
+          origem?: string
+          sensei_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atleta_dojos_atleta_id_fkey"
+            columns: ["atleta_id"]
+            isOneToOne: false
+            referencedRelation: "atletas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atleta_dojos_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atleta_dojos_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atletas: {
+        Row: {
+          aceite_lgpd: boolean
+          aceite_ranking: boolean
+          aceite_termos: boolean
+          aceites_em: string | null
+          created_at: string
+          data_nascimento: string
+          email: string
+          id: string
+          nome: string
+          pais: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          aceite_lgpd?: boolean
+          aceite_ranking?: boolean
+          aceite_termos?: boolean
+          aceites_em?: string | null
+          created_at?: string
+          data_nascimento: string
+          email: string
+          id: string
+          nome: string
+          pais?: string
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          aceite_lgpd?: boolean
+          aceite_ranking?: boolean
+          aceite_termos?: boolean
+          aceites_em?: string | null
+          created_at?: string
+          data_nascimento?: string
+          email?: string
+          id?: string
+          nome?: string
+          pais?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       config: {
         Row: {
           chave: string
@@ -29,9 +129,131 @@ export type Database = {
         }
         Relationships: []
       }
+      dojo_alfinete_historico: {
+        Row: {
+          alterado_por: string | null
+          created_at: string
+          id: string
+          latitude_antiga: number | null
+          latitude_nova: number | null
+          longitude_antiga: number | null
+          longitude_nova: number | null
+          sensei_id: string
+        }
+        Insert: {
+          alterado_por?: string | null
+          created_at?: string
+          id?: string
+          latitude_antiga?: number | null
+          latitude_nova?: number | null
+          longitude_antiga?: number | null
+          longitude_nova?: number | null
+          sensei_id: string
+        }
+        Update: {
+          alterado_por?: string | null
+          created_at?: string
+          id?: string
+          latitude_antiga?: number | null
+          latitude_nova?: number | null
+          longitude_antiga?: number | null
+          longitude_nova?: number | null
+          sensei_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dojo_alfinete_historico_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dojo_alfinete_historico_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      filiacoes: {
+        Row: {
+          alterada_em: string | null
+          assinatura_externa_id: string | null
+          ativada_em: string | null
+          atleta_id: string | null
+          created_at: string
+          decidido_por: string | null
+          id: string
+          motivo: string | null
+          obs: string | null
+          provedor: string
+          sensei_id: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          alterada_em?: string | null
+          assinatura_externa_id?: string | null
+          ativada_em?: string | null
+          atleta_id?: string | null
+          created_at?: string
+          decidido_por?: string | null
+          id?: string
+          motivo?: string | null
+          obs?: string | null
+          provedor?: string
+          sensei_id?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          alterada_em?: string | null
+          assinatura_externa_id?: string | null
+          ativada_em?: string | null
+          atleta_id?: string | null
+          created_at?: string
+          decidido_por?: string | null
+          id?: string
+          motivo?: string | null
+          obs?: string | null
+          provedor?: string
+          sensei_id?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filiacoes_atleta_id_fkey"
+            columns: ["atleta_id"]
+            isOneToOne: false
+            referencedRelation: "atletas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filiacoes_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filiacoes_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads_atletas: {
         Row: {
           aceite_lgpd: boolean
+          atleta_id: string | null
           cidade: string | null
           convertido_em: string | null
           created_at: string | null
@@ -47,6 +269,7 @@ export type Database = {
         }
         Insert: {
           aceite_lgpd?: boolean
+          atleta_id?: string | null
           cidade?: string | null
           convertido_em?: string | null
           created_at?: string | null
@@ -62,6 +285,7 @@ export type Database = {
         }
         Update: {
           aceite_lgpd?: boolean
+          atleta_id?: string | null
           cidade?: string | null
           convertido_em?: string | null
           created_at?: string | null
@@ -76,6 +300,13 @@ export type Database = {
           whatsapp?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_atletas_atleta_id_fkey"
+            columns: ["atleta_id"]
+            isOneToOne: false
+            referencedRelation: "atletas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_atletas_sensei_id_fkey"
             columns: ["sensei_id"]
@@ -256,17 +487,28 @@ export type Database = {
           cidade: string
           created_at: string | null
           data_adesao: string | null
+          dia_aula: number | null
           dojo: string
+          duracao_minutos: number
           email: string
+          endereco: string | null
           foto_url: string | null
+          fuso_horario: string
           graduacao: string | null
+          horario_aula: string | null
           id: string
           instagram: string | null
+          latitude: number | null
           link_afiliado_avulso: string | null
           link_afiliado_mensal: string | null
+          longitude: number | null
           nome: string
           obs: string | null
+          onboarding_concluido: boolean
+          pais: string
           piloto: boolean
+          raio_metros: number
+          selo_status: string
           status: string
           tempo_ensino: string | null
           uf: string
@@ -282,17 +524,28 @@ export type Database = {
           cidade: string
           created_at?: string | null
           data_adesao?: string | null
+          dia_aula?: number | null
           dojo: string
+          duracao_minutos?: number
           email: string
+          endereco?: string | null
           foto_url?: string | null
+          fuso_horario?: string
           graduacao?: string | null
+          horario_aula?: string | null
           id?: string
           instagram?: string | null
+          latitude?: number | null
           link_afiliado_avulso?: string | null
           link_afiliado_mensal?: string | null
+          longitude?: number | null
           nome: string
           obs?: string | null
+          onboarding_concluido?: boolean
+          pais?: string
           piloto?: boolean
+          raio_metros?: number
+          selo_status?: string
           status?: string
           tempo_ensino?: string | null
           uf: string
@@ -308,17 +561,28 @@ export type Database = {
           cidade?: string
           created_at?: string | null
           data_adesao?: string | null
+          dia_aula?: number | null
           dojo?: string
+          duracao_minutos?: number
           email?: string
+          endereco?: string | null
           foto_url?: string | null
+          fuso_horario?: string
           graduacao?: string | null
+          horario_aula?: string | null
           id?: string
           instagram?: string | null
+          latitude?: number | null
           link_afiliado_avulso?: string | null
           link_afiliado_mensal?: string | null
+          longitude?: number | null
           nome?: string
           obs?: string | null
+          onboarding_concluido?: boolean
+          pais?: string
           piloto?: boolean
+          raio_metros?: number
+          selo_status?: string
           status?: string
           tempo_ensino?: string | null
           uf?: string
@@ -420,7 +684,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "sensei"
+      app_role: "admin" | "sensei" | "atleta"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -548,7 +812,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "sensei"],
+      app_role: ["admin", "sensei", "atleta"],
     },
   },
 } as const

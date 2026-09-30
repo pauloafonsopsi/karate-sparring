@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
+import { supabase } from "@/integrations/supabase/client";
 import { criarLead, getAppConfig, getPublicSenseis, type PublicSensei } from "@/lib/app.functions";
+import { criarContaAtleta } from "@/lib/atleta.functions";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/")({
@@ -26,6 +28,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:image", content: "https://karate-sparring.lovable.app/og.jpg" },
+      { name: "twitter:image", content: "https://karate-sparring.lovable.app/og.jpg" },
     ],
   }),
   component: Triagem,
@@ -62,6 +66,8 @@ function Triagem() {
   const configFn = useServerFn(getAppConfig);
   const publicSenseisFn = useServerFn(getPublicSenseis);
   const criarLeadFn = useServerFn(criarLead);
+  const criarContaFn = useServerFn(criarContaAtleta);
+  const abertoEm = useRef(Date.now());
 
   const { data: config } = useQuery({
     queryKey: ["config"],
@@ -84,6 +90,13 @@ function Triagem() {
     cidade: "",
     uf: "",
   });
+  const [conta, setConta] = useState({
+    email_confirmacao: "",
+    data_nascimento: "",
+    senha: "",
+    isca: "",
+  });
+  const [aceites, setAceites] = useState({ termos: false, lgpd: false, ranking: false });
   const [enviando, setEnviando] = useState(false);
   const [pronto, setPronto] = useState<string | null>(null);
   const [aceite, setAceite] = useState(false);
@@ -119,18 +132,63 @@ function Triagem() {
     return id;
   }
 
-  async function continuarCadastro() {
-    const erro = validarDados(false);
-    if (erro) {
-      toast.error(erro);
+  async function criarConta() {
+    if (!sensei) return;
+    const problema =
+      dados.nome.trim().length < 3
+        ? "Informe seu nome completo."
+        : dados.whatsapp.replace(/\D/g, "").length < 10
+          ? "Informe um WhatsApp válido."
+          : !isEmail(dados.email)
+            ? "Informe um email válido."
+            : dados.email.trim().toLowerCase() !== conta.email_confirmacao.trim().toLowerCase()
+              ? "Os dois emails precisam ser iguais."
+              : !/^\d{4}-\d{2}-\d{2}$/.test(conta.data_nascimento)
+                ? "Informe sua data de nascimento."
+                : conta.senha.length < 8
+                  ? "A senha precisa ter ao menos 8 caracteres."
+                  : !aceites.termos || !aceites.lgpd || !aceites.ranking
+                    ? "É necessário aceitar os três itens para criar a conta."
+                    : null;
+    if (problema) {
+      toast.error(problema);
       return;
     }
+
     setEnviando(true);
     try {
-      await salvarLead(sensei?.id ?? null);
-      void navigate({ to: "/confirmado" });
-    } catch {
-      toast.error("Não conseguimos salvar seus dados. Verifique a conexão e tente de novo.");
+      const email = dados.email.trim().toLowerCase();
+      await criarContaFn({
+        data: {
+          nome: dados.nome.trim(),
+          whatsapp: dados.whatsapp,
+          email,
+          email_confirmacao: conta.email_confirmacao.trim().toLowerCase(),
+          data_nascimento: conta.data_nascimento,
+          senha: conta.senha,
+          sensei_id: sensei.id,
+          aceite_termos: true as const,
+          aceite_lgpd: true as const,
+          aceite_ranking: true as const,
+          isca: conta.isca,
+          duracao_ms: Date.now() - abertoEm.current,
+        },
+      });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password: conta.senha,
+      });
+      if (error) {
+        void navigate({ to: "/auth" });
+        return;
+      }
+      void navigate({ to: "/atleta" });
+    } catch (e) {
+      toast.error(
+        e instanceof Error && e.message
+          ? e.message
+          : "Não conseguimos criar sua conta. Tente novamente em instantes.",
+      );
     } finally {
       setEnviando(false);
     }
@@ -215,9 +273,12 @@ function Triagem() {
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-fg">
             Treino semanal de sparring no dojô da sua região, com presença e ranking nacional.
           </p>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-5">
             <Link to="/sensei" className="eyebrow hover:text-foreground">
               Sou sensei →
+            </Link>
+            <Link to="/auth" className="eyebrow hover:text-foreground">
+              Já tenho conta →
             </Link>
           </div>
         </header>
@@ -309,7 +370,10 @@ function Triagem() {
           </Passo>
         ) : step === 3 ? (
           inscricoesAbertas ? (
-            <Passo n="03" titulo="Seus dados">
+            <Passo n="03" titulo="Crie sua conta">
+              <p className="mb-6 text-sm text-muted-fg">
+                Sua conta fica vinculada ao dojô escolhido. A filiação é liberada pela liga.
+              </p>
               <div className="space-y-4">
                 <Field label="Nome completo">
                   <TextInput
@@ -331,24 +395,70 @@ function Triagem() {
                     value={dados.email}
                     type="email"
                     inputMode="email"
+                    autoComplete="email"
                     onChange={(e) => setDados({ ...dados, email: e.target.value })}
                   />
                 </Field>
-                <Field label="Cidade (opcional)">
+                <Field label="Confirme o email" hint="Digite de novo, sem copiar e colar.">
                   <TextInput
-                    value={dados.cidade}
-                    onChange={(e) => setDados({ ...dados, cidade: e.target.value })}
+                    value={conta.email_confirmacao}
+                    type="email"
+                    inputMode="email"
+                    autoComplete="off"
+                    onChange={(e) => setConta({ ...conta, email_confirmacao: e.target.value })}
                   />
                 </Field>
-                <Check checked={aceite} onChange={setAceite}>
-                  Autorizo o contato e o uso dos meus dados conforme a{" "}
-                  <a href="#" className="text-foreground underline">
-                    Política de Privacidade
-                  </a>
-                  .
+                <Field label="Data de nascimento">
+                  <TextInput
+                    value={conta.data_nascimento}
+                    type="date"
+                    onChange={(e) => setConta({ ...conta, data_nascimento: e.target.value })}
+                  />
+                </Field>
+                <Field label="Senha" hint="Mínimo de 8 caracteres.">
+                  <TextInput
+                    value={conta.senha}
+                    type="password"
+                    autoComplete="new-password"
+                    onChange={(e) => setConta({ ...conta, senha: e.target.value })}
+                  />
+                </Field>
+
+                <input
+                  type="text"
+                  name="empresa"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  value={conta.isca}
+                  onChange={(e) => setConta({ ...conta, isca: e.target.value })}
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    width: 1,
+                    height: 1,
+                    opacity: 0,
+                  }}
+                />
+
+                <Check
+                  checked={aceites.termos}
+                  onChange={(v) => setAceites({ ...aceites, termos: v })}
+                >
+                  Aceito os termos de participação da World League.
                 </Check>
-                <Btn full disabled={enviando} onClick={continuarCadastro}>
-                  {enviando ? "Enviando" : "Fazer pré-inscrição"}
+                <Check checked={aceites.lgpd} onChange={(v) => setAceites({ ...aceites, lgpd: v })}>
+                  Autorizo o contato e o uso dos meus dados conforme a Política de Privacidade.
+                </Check>
+                <Check
+                  checked={aceites.ranking}
+                  onChange={(v) => setAceites({ ...aceites, ranking: v })}
+                >
+                  Autorizo a exibição do meu nome e dojô no ranking da liga.
+                </Check>
+
+                <Btn full disabled={enviando} onClick={() => void criarConta()}>
+                  {enviando ? "Criando conta" : "Criar minha conta"}
                 </Btn>
               </div>
               <Btn variant="ghost" className="mt-4 px-0" onClick={() => setStep(2)}>

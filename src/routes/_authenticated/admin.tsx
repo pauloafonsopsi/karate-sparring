@@ -1,12 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
+import { TrocaArea } from "@/components/troca-area";
 import { supabase } from "@/integrations/supabase/client";
-import { criarAcessoSensei, getMeuAcesso } from "@/lib/acesso.functions";
+import { convidarSensei, getMeuAcesso, type ResultadoConvite } from "@/lib/acesso.functions";
+import {
+  definirFiliacaoManual,
+  definirRaioDoDojo,
+  listarFiliacoes,
+  trocarDojoDoAtleta,
+} from "@/lib/filiacoes.functions";
+import { nomeDia } from "@/lib/semana";
 import { UFS } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
@@ -39,6 +48,16 @@ type Sensei = {
   piloto: boolean;
   obs: string | null;
   created_at: string | null;
+  endereco: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  raio_metros: number;
+  fuso_horario: string;
+  dia_aula: number | null;
+  horario_aula: string | null;
+  duracao_minutos: number;
+  selo_status: string;
+  onboarding_concluido: boolean;
 };
 
 type Lead = {
@@ -49,12 +68,11 @@ type Lead = {
   cidade: string | null;
   uf: string;
   sensei_id: string | null;
-  produto_escolhido: string | null;
   status: string;
   created_at: string | null;
 };
 
-const ABAS = ["Senseis", "Leads", "Config"] as const;
+const ABAS = ["Senseis", "Filiações", "Leads", "Config"] as const;
 
 function dataBr(v: string | null) {
   return v ? new Date(v).toLocaleDateString("pt-BR") : "—";
@@ -67,7 +85,7 @@ function Admin() {
   const { data: acesso } = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso() });
 
   useEffect(() => {
-    if (acesso && !acesso.admin) void navigate({ to: "/admin/dojos", replace: true });
+    if (acesso && !acesso.admin) void navigate({ to: acesso.area, replace: true });
   }, [acesso, navigate]);
 
   async function sair() {
@@ -82,9 +100,12 @@ function Admin() {
       <div className="mx-auto w-full max-w-6xl px-5 py-8">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
           <Wordmark size="sm" />
-          <Btn variant="ghost" className="px-0" onClick={() => void sair()}>
-            Sair
-          </Btn>
+          <div className="flex items-center gap-3">
+            <TrocaArea acesso={acesso} atual="/admin" />
+            <Btn variant="ghost" className="px-0" onClick={() => void sair()}>
+              Sair
+            </Btn>
+          </div>
         </header>
 
         <nav className="mt-6 flex flex-wrap gap-2">
@@ -103,6 +124,7 @@ function Admin() {
 
         <div className="mt-8">
           {aba === "Senseis" && <AbaSenseis />}
+          {aba === "Filiações" && <AbaFiliacoes />}
           {aba === "Leads" && <AbaLeads />}
           {aba === "Config" && <AbaConfig />}
         </div>
@@ -146,8 +168,6 @@ function AbaSenseis() {
     const ls = (leadsResumo ?? []).filter((l) => l.sensei_id === senseiId);
     return {
       total: ls.length,
-      convertidos: ls.filter((l) => l.status === "convertido").length,
-      orfaos: ls.filter((l) => l.status === "orfao_conciliado").length,
     };
   };
 
@@ -205,9 +225,7 @@ function AbaSenseis() {
                 "Cidade/UF",
                 "Status",
                 "Piloto",
-                "Leads",
-                "Convertidos",
-                "Órfãos",
+                "Pré-inscrições",
                 "Aplicou em",
                 "Contato",
               ].map((h) => (
@@ -242,8 +260,6 @@ function AbaSenseis() {
                   />
                 </td>
                 <td className="p-3 font-semibold">{contar(s.id).total}</td>
-                <td className="p-3 font-semibold text-brand">{contar(s.id).convertidos}</td>
-                <td className="p-3 text-muted-fg">{contar(s.id).orfaos}</td>
                 <td className="p-3 text-muted-fg">{dataBr(s.created_at)}</td>
                 <td className="p-3">
                   {whatsappLink(s.whatsapp) && (
@@ -296,17 +312,28 @@ function PainelSensei({
     obs: sensei.obs ?? "",
   });
 
-  const [acesso, setAcesso] = useState({ email: sensei.email, senha: "" });
-  const criarAcesso = useMutation({
-    mutationFn: () =>
-      criarAcessoSensei({
-        data: { sensei_id: sensei.id, email: acesso.email.trim(), senha: acesso.senha },
-      }),
-    onSuccess: () => {
-      setAcesso((a) => ({ ...a, senha: "" }));
-      toast.success("Acesso do sensei criado.");
+  const convidarFn = useServerFn(convidarSensei);
+  const [contaExistente, setContaExistente] = useState(false);
+  const [linkAtivacao, setLinkAtivacao] = useState<string | null>(null);
+
+  const convidar = useMutation({
+    mutationFn: (confirmar_vinculo: boolean) =>
+      convidarFn({ data: { sensei_id: sensei.id, confirmar_vinculo } }),
+    onSuccess: (r: ResultadoConvite) => {
+      setLinkAtivacao(r.link);
+      if (r.situacao === "conta_existente") {
+        setContaExistente(true);
+        toast.info("Este email já tem conta. Confirme para dar o papel de sensei a ela.");
+        return;
+      }
+      setContaExistente(false);
+      toast.success(
+        r.situacao === "convidado"
+          ? `Convite enviado para ${r.email}. O sensei define a própria senha.`
+          : `Papel de sensei vinculado à conta de ${r.email}.`,
+      );
     },
-    onError: () => toast.error("Não foi possível criar o acesso."),
+    onError: (e: Error) => toast.error(e.message || "Não foi possível enviar o convite."),
   });
   const wa = whatsappLink(sensei.whatsapp);
 
@@ -343,6 +370,22 @@ function PainelSensei({
             ["Instagram", sensei.instagram ?? "—"],
             ["Piloto", sensei.piloto ? "sim" : "não"],
             ["Aplicou em", dataBr(sensei.created_at)],
+            ["Endereço", sensei.endereco ?? "—"],
+            [
+              "Alfinete",
+              sensei.latitude != null && sensei.longitude != null
+                ? `${sensei.latitude.toFixed(5)}, ${sensei.longitude.toFixed(5)}`
+                : "não marcado",
+            ],
+            ["Fuso horário", sensei.fuso_horario],
+            [
+              "Aula semanal",
+              sensei.dia_aula
+                ? `${nomeDia(sensei.dia_aula)} às ${(sensei.horario_aula ?? "").slice(0, 5)} · ${sensei.duracao_minutos} min`
+                : "não definida",
+            ],
+            ["Onboarding", sensei.onboarding_concluido ? "concluído" : "pendente"],
+            ["Selo", sensei.selo_status === "neutro" ? "ainda não avaliado" : sensei.selo_status],
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between gap-4">
               <dt className="eyebrow">{k}</dt>
@@ -350,6 +393,8 @@ function PainelSensei({
             </div>
           ))}
         </dl>
+
+        <RaioDoDojo sensei={sensei} />
 
         <div className="mt-6 space-y-4">
           <Field label="Foto (URL)">
@@ -394,32 +439,47 @@ function PainelSensei({
         </div>
 
         <div className="mt-8 space-y-4 border-t border-line pt-6">
-          <p className="eyebrow">Acesso do sensei ao painel de leads</p>
-          <Field label="Email de acesso">
-            <TextInput
-              type="email"
-              value={acesso.email}
-              onChange={(e) => setAcesso({ ...acesso, email: e.target.value })}
-            />
-          </Field>
-          <Field label="Senha inicial (mínimo 8 caracteres)">
-            <TextInput
-              type="text"
-              value={acesso.senha}
-              onChange={(e) => setAcesso({ ...acesso, senha: e.target.value })}
-            />
-          </Field>
+          <p className="eyebrow">Acesso do sensei ao painel do dojô</p>
+          <p className="text-sm text-muted-fg">
+            O convite vai para <span className="text-foreground">{sensei.email}</span> e o próprio
+            sensei define a senha. Nenhuma senha é alterada por aqui.
+          </p>
           <Btn
             full
             variant="outline"
-            disabled={acesso.senha.trim().length < 8 || criarAcesso.isPending}
-            onClick={() => criarAcesso.mutate()}
+            disabled={
+              convidar.isPending || !["aprovado", "ativo"].includes(sensei.status) || contaExistente
+            }
+            onClick={() => convidar.mutate(false)}
           >
-            {criarAcesso.isPending ? "Criando" : "Criar acesso"}
+            {convidar.isPending ? "Enviando" : "Enviar convite por email"}
           </Btn>
-          <p className="text-xs text-muted-fg">
-            O sensei entra em /auth com esses dados e vê apenas os leads do dojô dele.
-          </p>
+          {!["aprovado", "ativo"].includes(sensei.status) && (
+            <p className="text-xs text-brand">
+              Aprove o sensei antes de enviar o convite de acesso.
+            </p>
+          )}
+          {contaExistente && (
+            <div className="space-y-3 border border-brand p-4">
+              <p className="text-sm">
+                Já existe uma conta com este email. Confirmar dá a ela o papel de sensei deste dojô,
+                sem mexer na senha.
+              </p>
+              <div className="flex gap-2">
+                <Btn disabled={convidar.isPending} onClick={() => convidar.mutate(true)}>
+                  Confirmar vínculo
+                </Btn>
+                <Btn variant="ghost" onClick={() => setContaExistente(false)}>
+                  Cancelar
+                </Btn>
+              </div>
+            </div>
+          )}
+          {linkAtivacao && (
+            <Field label="Link de ativação" hint="Use caso o email não chegue.">
+              <TextInput readOnly value={linkAtivacao} onFocus={(e) => e.target.select()} />
+            </Field>
+          )}
         </div>
       </aside>
     </div>
@@ -431,7 +491,6 @@ function PainelSensei({
 function AbaLeads() {
   const [uf, setUf] = useState("");
   const [senseiId, setSenseiId] = useState("");
-  const [produto, setProduto] = useState("");
   const [status, setStatus] = useState("");
   const [busca, setBusca] = useState("");
 
@@ -464,13 +523,12 @@ function AbaLeads() {
     (l) =>
       (!uf || l.uf === uf) &&
       (!senseiId || l.sensei_id === senseiId) &&
-      (!produto || l.produto_escolhido === produto) &&
       (!status || l.status === status) &&
       (!termo || [l.nome, l.email].some((f) => f.toLowerCase().includes(termo))),
   );
 
   function exportar() {
-    const head = ["nome", "whatsapp", "email", "uf", "cidade", "sensei", "produto", "status", "data"];
+    const head = ["nome", "whatsapp", "email", "uf", "cidade", "sensei", "status", "data"];
     const rows = lista.map((l) => [
       l.nome,
       l.whatsapp,
@@ -478,7 +536,6 @@ function AbaLeads() {
       l.uf,
       l.cidade ?? "",
       nomeSensei(l.sensei_id),
-      l.produto_escolhido ?? "",
       l.status,
       dataBr(l.created_at),
     ]);
@@ -516,18 +573,9 @@ function AbaLeads() {
             </option>
           ))}
         </SelectInput>
-        <SelectInput
-          className="max-w-36"
-          value={produto}
-          onChange={(e) => setProduto(e.target.value)}
-        >
-          <option value="">Produto</option>
-          <option value="mensal">mensal</option>
-          <option value="avulso">avulso</option>
-        </SelectInput>
         <SelectInput className="max-w-40" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">Status</option>
-          {["lead", "convertido", "orfao_conciliado"].map((s) => (
+          {["lead", "convertido"].map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -548,7 +596,7 @@ function AbaLeads() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line bg-surface text-left">
-              {["Nome", "WhatsApp", "Email", "UF", "Sensei", "Produto", "Status", "Data"].map((h) => (
+              {["Nome", "WhatsApp", "Email", "UF", "Sensei", "Status", "Data"].map((h) => (
                 <th key={h} className="eyebrow p-3">
                   {h}
                 </th>
@@ -563,7 +611,6 @@ function AbaLeads() {
                 <td className="p-3 text-muted-fg">{l.email}</td>
                 <td className="p-3 text-muted-fg">{l.uf}</td>
                 <td className="p-3 text-muted-fg">{nomeSensei(l.sensei_id)}</td>
-                <td className="p-3 text-muted-fg">{l.produto_escolhido ?? "—"}</td>
                 <td className="p-3">
                   <Badge tone={l.status}>{l.status}</Badge>
                 </td>
@@ -628,6 +675,207 @@ function AbaConfig() {
     <div className="max-w-xl space-y-4">
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
+    </div>
+  );
+}
+
+function RaioDoDojo({ sensei }: { sensei: Sensei }) {
+  const qc = useQueryClient();
+  const salvarRaio = useServerFn(definirRaioDoDojo);
+  const [raio, setRaio] = useState(String(sensei.raio_metros));
+
+  const salvar = useMutation({
+    mutationFn: () => salvarRaio({ data: { sensei_id: sensei.id, raio_metros: Number(raio) } }),
+    onSuccess: () => {
+      toast.success("Raio atualizado.");
+      void qc.invalidateQueries({ queryKey: ["admin-senseis"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos salvar o raio."),
+  });
+
+  return (
+    <div className="mt-6 border-t border-line pt-6">
+      <Field label="Raio do check-in (metros)" hint="Somente o admin altera o raio. De 50 a 2000.">
+        <div className="flex gap-2">
+          <TextInput value={raio} inputMode="numeric" onChange={(e) => setRaio(e.target.value)} />
+          <Btn disabled={salvar.isPending} onClick={() => salvar.mutate()}>
+            Salvar
+          </Btn>
+        </div>
+      </Field>
+    </div>
+  );
+}
+
+const STATUS_FILIACAO = ["ativa", "pausada", "cancelada"] as const;
+
+function AbaFiliacoes() {
+  const qc = useQueryClient();
+  const listar = useServerFn(listarFiliacoes);
+  const definir = useServerFn(definirFiliacaoManual);
+  const trocar = useServerFn(trocarDojoDoAtleta);
+
+  const [busca, setBusca] = useState("");
+  const [sel, setSel] = useState<string | null>(null);
+  const [motivo, setMotivo] = useState("");
+  const [novoDojo, setNovoDojo] = useState("");
+
+  const { data: linhas, isLoading } = useQuery({
+    queryKey: ["filiacoes-admin"],
+    queryFn: () => listar({}),
+  });
+
+  const { data: dojos } = useQuery({
+    queryKey: ["senseis-para-troca"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("senseis")
+        .select("id, dojo, cidade, uf")
+        .order("dojo", { ascending: true });
+      return data ?? [];
+    },
+  });
+
+  const recarregar = () => void qc.invalidateQueries({ queryKey: ["filiacoes-admin"] });
+
+  const mudarStatus = useMutation({
+    mutationFn: (v: { atleta_id: string; status: (typeof STATUS_FILIACAO)[number] }) =>
+      definir({ data: { ...v, motivo: motivo.trim() || null, obs: null } }),
+    onSuccess: () => {
+      toast.success("Filiação atualizada.");
+      setMotivo("");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos salvar a filiação."),
+  });
+
+  const mudarDojo = useMutation({
+    mutationFn: (v: { atleta_id: string; sensei_id: string }) => trocar({ data: v }),
+    onSuccess: (r: { vigencia: string }) => {
+      toast.success(`Troca registrada. Vale a partir de ${dataBr(r.vigencia)}.`);
+      setNovoDojo("");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos trocar o dojô."),
+  });
+
+  const termo = busca.trim().toLowerCase();
+  const lista = (linhas ?? []).filter(
+    (l) =>
+      !termo ||
+      l.nome.toLowerCase().includes(termo) ||
+      l.email.toLowerCase().includes(termo) ||
+      (l.dojo ?? "").toLowerCase().includes(termo),
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="max-w-sm">
+        <Field label="Buscar">
+          <TextInput
+            value={busca}
+            placeholder="Nome, email ou dojô"
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </Field>
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-muted-fg">Carregando</p>
+      ) : lista.length === 0 ? (
+        <p className="text-sm text-muted-fg">Nenhum atleta com conta ainda.</p>
+      ) : (
+        <div className="divide-y divide-line border border-line">
+          {lista.map((l) => {
+            const aberto = sel === l.atleta_id;
+            return (
+              <div key={l.atleta_id} className="p-4">
+                <button
+                  className="flex w-full flex-wrap items-center justify-between gap-3 text-left"
+                  onClick={() => setSel(aberto ? null : l.atleta_id)}
+                >
+                  <div>
+                    <p className="font-semibold">{l.nome}</p>
+                    <p className="text-sm text-muted-fg">
+                      {l.dojo ? `${l.dojo} · ${l.cidade}/${l.uf}` : "sem dojô"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge>{l.status}</Badge>
+                    {l.provedor && <span className="eyebrow">{l.provedor}</span>}
+                  </div>
+                </button>
+
+                {aberto && (
+                  <div className="mt-5 space-y-5 border-t border-line pt-5">
+                    <dl className="space-y-2 text-sm">
+                      {[
+                        ["Email", l.email],
+                        ["WhatsApp", l.whatsapp],
+                        ["No dojô desde", dataBr(l.desde)],
+                        ["Motivo", l.motivo ?? "—"],
+                      ].map(([k, v]) => (
+                        <div key={k} className="flex justify-between gap-4">
+                          <dt className="eyebrow">{k}</dt>
+                          <dd className="text-right">{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+
+                    <div className="max-w-sm space-y-3">
+                      <Field label="Motivo (opcional)" hint="Ex.: cortesia do piloto.">
+                        <TextInput value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+                      </Field>
+                      <div className="flex flex-wrap gap-2">
+                        {STATUS_FILIACAO.map((s) => (
+                          <Btn
+                            key={s}
+                            variant={l.status === s ? "primary" : "outline"}
+                            disabled={mudarStatus.isPending}
+                            onClick={() => mudarStatus.mutate({ atleta_id: l.atleta_id, status: s })}
+                          >
+                            {s === "ativa" ? "Ativar" : s === "pausada" ? "Pausar" : "Cancelar"}
+                          </Btn>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="max-w-sm space-y-3">
+                      <Field
+                        label="Trocar de dojô"
+                        hint="Carência de 60 dias. Passa a valer na próxima segunda."
+                      >
+                        <SelectInput
+                          value={novoDojo}
+                          onChange={(e) => setNovoDojo(e.target.value)}
+                        >
+                          <option value="">Selecione o novo dojô</option>
+                          {(dojos ?? [])
+                            .filter((d) => d.id !== l.sensei_id)
+                            .map((d) => (
+                              <option key={d.id} value={d.id}>
+                                {d.dojo} · {d.cidade}/{d.uf}
+                              </option>
+                            ))}
+                        </SelectInput>
+                      </Field>
+                      <Btn
+                        variant="outline"
+                        disabled={!novoDojo || mudarDojo.isPending}
+                        onClick={() =>
+                          mudarDojo.mutate({ atleta_id: l.atleta_id, sensei_id: novoDojo })
+                        }
+                      >
+                        Confirmar troca
+                      </Btn>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

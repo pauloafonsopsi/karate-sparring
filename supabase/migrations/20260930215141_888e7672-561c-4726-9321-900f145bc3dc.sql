@@ -1,0 +1,1 @@
+UPDATE public.senseis SET status = 'ativo', piloto = true WHERE email = 'pauloafonsont@gmail.com';

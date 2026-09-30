@@ -15,3 +15,6 @@
 - Tabelas `pagamentos`, `pagamentos_orfaos` e `webhook_log` são histórico arquivado: somente leitura pelo admin via RLS, sem escrita pelo app.
 - Papéis de usuário ficam em `user_roles` + funções `private.has_role` / `private.current_sensei_id` — evita escalonamento de privilégio.
 - Marca renderizada só em `src/components/brand.tsx` (texto), para trocar por imagem em um único lugar.
+
+- Cadastro de atleta usa `email_confirm: true` (confirmação de email desligada) porque o SMTP padrão limita 30 emails/hora sem domínio próprio. Quando houver domínio próprio, reativar a confirmação de email no cadastro de atletas.
+- Acesso de sensei é sempre por convite (`convidarSensei`); nunca definir ou redefinir senha de conta existente pelo painel — evita tomar a conta de um atleta por erro de digitação.
