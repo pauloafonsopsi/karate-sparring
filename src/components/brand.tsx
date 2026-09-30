@@ -1,19 +1,28 @@
-import logoAsset from "@/assets/karate-sparring-logo.png.asset.json";
-
 export function Wordmark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-  const cls =
+  const title =
     size === "lg"
-      ? "w-full max-w-[42rem]"
+      ? "text-[8vw] leading-[0.88] sm:text-5xl"
       : size === "sm"
-        ? "w-44 sm:w-52"
-        : "w-64 sm:w-80";
+        ? "text-base leading-none"
+        : "text-2xl leading-none sm:text-3xl";
+  const sub =
+    size === "lg"
+      ? "text-[2.6vw] sm:text-sm"
+      : size === "sm"
+        ? "text-[9px]"
+        : "text-[10px] sm:text-xs";
+
   return (
-    <img
-      src={logoAsset.url}
-      alt="Karate Sparring by Legends"
-      className={`block h-auto ${cls}`}
-      decoding="async"
-    />
+    <div className="select-none">
+      <div className={`display uppercase ${title}`}>
+        Karate Legends
+        <br />
+        Sparring
+      </div>
+      <div className={`display mt-2 uppercase text-brand ${sub}`} style={{ letterSpacing: "0.4em" }}>
+        World League
+      </div>
+    </div>
   );
 }
 
