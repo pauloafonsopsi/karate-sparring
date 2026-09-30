@@ -628,38 +628,6 @@ function AbaConfig() {
     <div className="max-w-xl space-y-4">
       {toggle("modo_piloto", "Modo piloto")}
       {toggle("inscricoes_abertas", "Inscrições abertas")}
-
-    </div>
-  );
-}
-
-function ValorConfig({
-  chave,
-  label,
-  atual,
-  onSalvar,
-}: {
-  chave: string;
-  label: string;
-  atual: string;
-  onSalvar: (valor: string) => void;
-}) {
-  const [v, setV] = useState<string | null>(null);
-  const valor = v ?? atual;
-  return (
-    <div key={chave} className="flex items-end gap-3">
-      <div className="flex-1">
-        <Field label={label}>
-          <TextInput
-            value={valor}
-            inputMode="numeric"
-            onChange={(e) => setV(e.target.value.replace(/[^\d.]/g, ""))}
-          />
-        </Field>
-      </div>
-      <Btn variant="outline" onClick={() => onSalvar(valor.trim())}>
-        Salvar
-      </Btn>
     </div>
   );
 }
