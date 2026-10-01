@@ -515,7 +515,64 @@ function PainelSensei({
         <GestaoClube sensei={sensei} />
 
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Dados do clube</p>
+          <Field label="Nome do dojô">
+            <TextInput value={f.dojo} onChange={(e) => setF({ ...f, dojo: e.target.value })} />
+          </Field>
+          <Field label="Sensei responsável">
+            <TextInput value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} />
+          </Field>
+          <Field label="Email" hint="É o email de acesso ao painel do clube.">
+            <TextInput
+              type="email"
+              value={f.email}
+              onChange={(e) => setF({ ...f, email: e.target.value })}
+            />
+          </Field>
+          <Field label="WhatsApp">
+            <TextInput
+              value={f.whatsapp}
+              onChange={(e) => setF({ ...f, whatsapp: e.target.value })}
+            />
+          </Field>
+          <Field label="Cidade">
+            <TextInput value={f.cidade} onChange={(e) => setF({ ...f, cidade: e.target.value })} />
+          </Field>
+          <Field label="UF">
+            <SelectInput value={f.uf} onChange={(e) => setF({ ...f, uf: e.target.value })}>
+              {UFS.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label="Graduação">
+            <TextInput
+              value={f.graduacao}
+              onChange={(e) => setF({ ...f, graduacao: e.target.value })}
+            />
+          </Field>
+          <Field label="Tempo de ensino">
+            <TextInput
+              value={f.tempo_ensino}
+              onChange={(e) => setF({ ...f, tempo_ensino: e.target.value })}
+            />
+          </Field>
+          <Field label="Instagram">
+            <TextInput
+              value={f.instagram}
+              onChange={(e) => setF({ ...f, instagram: e.target.value })}
+            />
+          </Field>
+          <Field label="Mensalidade do clube (R$)" hint="Deixe vazio se o clube ainda não definiu.">
+            <TextInput
+              inputMode="decimal"
+              value={f.mensalidade}
+              onChange={(e) => setF({ ...f, mensalidade: e.target.value })}
+            />
+          </Field>
           <Field label="Foto (URL)">
             <TextInput
               value={f.foto_url}
@@ -528,14 +585,10 @@ function PainelSensei({
           <Btn
             full
             variant="outline"
-            onClick={() =>
-              onSave({
-                foto_url: f.foto_url.trim() || null,
-                obs: f.obs.trim() || null,
-              })
-            }
+            disabled={salvarClube.isPending}
+            onClick={() => salvarClube.mutate()}
           >
-            Salvar dados
+            {salvarClube.isPending ? "Salvando" : "Salvar dados do clube"}
           </Btn>
         </div>
 
