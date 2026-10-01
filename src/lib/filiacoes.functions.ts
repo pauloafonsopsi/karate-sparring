@@ -160,12 +160,15 @@ export const trocarDojoDoAtleta = createServerFn({ method: "POST" })
     }
 
     if (atual?.desde && !data.ignorar_carencia) {
+      const { data: cfg } = await supabaseAdmin.from("config").select("chave, valor");
+      const bruto = Number((cfg ?? []).find((c) => c.chave === "carencia_troca_dias")?.valor);
+      const carencia = Number.isFinite(bruto) && bruto >= 0 ? bruto : 60;
       const dias = Math.floor(
         (Date.now() - new Date(`${atual.desde}T00:00:00`).getTime()) / 86_400_000,
       );
-      if (dias < 60) {
+      if (carencia > 0 && dias < carencia) {
         throw new Error(
-          `Carência de 60 dias: faltam ${60 - dias} dia(s) para este atleta poder trocar de dojô.`,
+          `Carência de ${carencia} dias: faltam ${carencia - dias} dia(s) para este atleta poder trocar de dojô.`,
         );
       }
     }
