@@ -26,6 +26,7 @@ export const getAppConfig = createServerFn({ method: "GET" }).handler(
     return {
       modo_piloto: map.get("modo_piloto") !== "false",
       inscricoes_abertas: map.get("inscricoes_abertas") !== "false",
+      aviso_global: (map.get("aviso_global") ?? "").trim(),
     };
   },
 );
