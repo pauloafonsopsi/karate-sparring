@@ -116,8 +116,8 @@
   }
 
   ::selection {
-    background: var(--accent-red);
-    color: var(--foreground);
+    background: var(--gold);
+    color: var(--background);
   }
 }
 
