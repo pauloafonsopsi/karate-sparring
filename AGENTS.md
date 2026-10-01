@@ -24,3 +24,8 @@
 - Sensei edita só a unidade e a mensalidade por server function com lista fechada de campos (`atualizarMinhaUnidade`, `definirMinhaMensalidade`); raio, status, piloto, slug, recebedor e anuidade são do admin.
 - Área do clube é a rota `/clube`; `/admin/dojos` só redireciona.
 - No piloto, autorizar atleta cria filiação `provedor='piloto_cortesia'`; fora do piloto a autorização só libera o pagamento.
+
+- Convite de sensei: o padrão é gerar link de acesso (`generateLink` type invite) para o admin enviar pelo WhatsApp — não gasta a cota de 30 emails/hora; o email é um botão separado. Quando o email já tem conta, apenas vincula papel/clube após confirmação do admin e **nunca** gera link de entrada (evitaria tomar a conta de outra pessoa).
+- Papéis são checados no `beforeLoad` de `/admin`, `/clube` e `/atleta` — nunca em `useEffect`, para a tela de outra área não renderizar nem por um instante.
+- Atleta edita o próprio perfil só pela server function `atualizarMeuPerfil` (nome, whatsapp, faixa, aceite de marketing). Não existe policy de UPDATE em `atletas` para o atleta.
+- Endereço público do app vem de `src/lib/config.ts` (`SITE_URL`, `SITE_HOST`, `siteUrl`, `OG_IMAGE`) — nunca hardcoded.
