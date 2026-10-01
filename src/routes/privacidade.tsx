@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
 import { MarcaCompacta } from "@/components/brand";
 
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/privacidade")({
   component: Privacidade,
 });
 
-function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Bloco({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <section className="grid gap-4 border-t border-line py-8 md:grid-cols-[15rem_1fr] md:py-10">
       <h2 className="text-lg leading-tight">{titulo}</h2>

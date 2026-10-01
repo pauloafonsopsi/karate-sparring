@@ -15,9 +15,11 @@ import { Route as AdesaoRouteImport } from './routes/adesao'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as MinhaAdesaoRouteImport } from './routes/minha-adesao'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SenseiRouteImport } from './routes/sensei'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAtletaRouteImport } from './routes/_authenticated/atleta'
 import { Route as AuthenticatedClubeRouteImport } from './routes/_authenticated/clube'
@@ -53,6 +55,11 @@ const MinhaAdesaoRoute = MinhaAdesaoRouteImport.update({
   path: '/minha-adesao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
@@ -66,6 +73,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SenseiRoute = SenseiRouteImport.update({
   id: '/sensei',
   path: '/sensei',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -100,9 +112,11 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/minha-adesao': typeof MinhaAdesaoRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sensei': typeof SenseiRoute
+  '/termos': typeof TermosRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/atleta': typeof AuthenticatedAtletaRoute
   '/clube': typeof AuthenticatedClubeRoute
@@ -115,9 +129,11 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/minha-adesao': typeof MinhaAdesaoRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sensei': typeof SenseiRoute
+  '/termos': typeof TermosRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/atleta': typeof AuthenticatedAtletaRoute
   '/clube': typeof AuthenticatedClubeRoute
@@ -132,9 +148,11 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/confirmado': typeof ConfirmadoRoute
   '/minha-adesao': typeof MinhaAdesaoRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sensei': typeof SenseiRoute
+  '/termos': typeof TermosRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/atleta': typeof AuthenticatedAtletaRoute
   '/_authenticated/clube': typeof AuthenticatedClubeRoute
@@ -149,9 +167,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/confirmado'
     | '/minha-adesao'
+    | '/privacidade'
     | '/ranking'
     | '/reset-password'
     | '/sensei'
+    | '/termos'
     | '/admin'
     | '/atleta'
     | '/clube'
@@ -164,9 +184,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/confirmado'
     | '/minha-adesao'
+    | '/privacidade'
     | '/ranking'
     | '/reset-password'
     | '/sensei'
+    | '/termos'
     | '/admin'
     | '/atleta'
     | '/clube'
@@ -180,9 +202,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/confirmado'
     | '/minha-adesao'
+    | '/privacidade'
     | '/ranking'
     | '/reset-password'
     | '/sensei'
+    | '/termos'
     | '/_authenticated/admin'
     | '/_authenticated/atleta'
     | '/_authenticated/clube'
@@ -197,9 +221,11 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConfirmadoRoute: typeof ConfirmadoRoute
   MinhaAdesaoRoute: typeof MinhaAdesaoRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   RankingRoute: typeof RankingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SenseiRoute: typeof SenseiRoute
+  TermosRoute: typeof TermosRoute
   CSlugRoute: typeof CSlugRoute
 }
 
@@ -247,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MinhaAdesaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ranking': {
       id: '/ranking'
       path: '/ranking'
@@ -266,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/sensei'
       fullPath: '/sensei'
       preLoaderRoute: typeof SenseiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -330,9 +370,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ConfirmadoRoute: ConfirmadoRoute,
   MinhaAdesaoRoute: MinhaAdesaoRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   RankingRoute: RankingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SenseiRoute: SenseiRoute,
+  TermosRoute: TermosRoute,
   CSlugRoute: CSlugRoute,
 }
 export const routeTree = rootRouteImport

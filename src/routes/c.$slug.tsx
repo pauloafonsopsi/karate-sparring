@@ -344,16 +344,28 @@ function PaginaClube() {
                 checked={aceites.termos}
                 onChange={(v) => setAceites({ ...aceites, termos: v })}
               >
-                Aceito os termos de participação da World League.
+                Aceito os{" "}
+                <Link to="/termos" className="text-foreground underline">
+                  Termos de Participação
+                </Link>{" "}
+                da World League.
               </Check>
               <Check checked={aceites.lgpd} onChange={(v) => setAceites({ ...aceites, lgpd: v })}>
-                Autorizo o contato e o uso dos meus dados conforme a Política de Privacidade.
+                Autorizo o contato e o uso dos meus dados conforme a{" "}
+                <Link to="/privacidade" className="text-foreground underline">
+                  Política de Privacidade
+                </Link>
+                .
               </Check>
               <Check
                 checked={aceites.ranking}
                 onChange={(v) => setAceites({ ...aceites, ranking: v })}
               >
-                Autorizo a exibição do meu nome e clube no ranking da liga.
+                Autorizo a exibição do meu nome e clube conforme as{" "}
+                <Link to="/ranking" className="text-foreground underline">
+                  regras do ranking
+                </Link>
+                .
               </Check>
               <Check
                 checked={aceites.marketing}
