@@ -238,6 +238,43 @@ function AbaSenseis() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
+        <Btn onClick={() => setNovo(true)}>+ Novo clube</Btn>
+        <Btn
+          variant="outline"
+          onClick={() =>
+            baixarCsv(
+              "clubes-karate-legends",
+              [
+                "dojo",
+                "sensei",
+                "email",
+                "whatsapp",
+                "cidade",
+                "uf",
+                "status",
+                "piloto",
+                "mensalidade",
+                "link",
+                "aplicou_em",
+              ],
+              lista.map((s) => [
+                s.dojo,
+                s.nome,
+                s.email,
+                s.whatsapp,
+                s.cidade,
+                s.uf,
+                s.status,
+                s.piloto ? "sim" : "não",
+                brl(s.mensalidade_centavos),
+                s.link_publico_ativo ? `${SITE_HOST}/c/${s.slug}` : "",
+                dataBr(s.created_at),
+              ]),
+            )
+          }
+        >
+          Exportar CSV
+        </Btn>
       </div>
 
       <div className="overflow-x-auto border border-line">
