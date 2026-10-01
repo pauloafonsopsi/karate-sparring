@@ -9,6 +9,7 @@ import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { TrocaArea } from "@/components/troca-area";
 import { supabase } from "@/integrations/supabase/client";
 import { convidarSensei, getMeuAcesso, type ResultadoConvite } from "@/lib/acesso.functions";
+import { SITE_HOST } from "@/lib/config";
 import {
   definirFiliacaoManual,
   definirRaioDoDojo,
@@ -786,7 +787,7 @@ function GestaoClube({ sensei }: { sensei: Sensei }) {
         <p className="text-xs text-muted-fg">
           Link público:{" "}
           {sensei.link_publico_ativo
-            ? `karate-sparring.lovable.app/c/${sensei.slug}`
+            ? `${SITE_HOST}/c/${sensei.slug}`
             : "ainda não publicado"}
           {" · "}
           mensalidade do clube: {brl(sensei.mensalidade_centavos)}

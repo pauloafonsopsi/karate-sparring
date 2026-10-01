@@ -10,6 +10,7 @@ import { MapaAlfinete } from "@/components/mapa-alfinete";
 import { TrocaArea } from "@/components/troca-area";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuAcesso } from "@/lib/acesso.functions";
+import { SITE_HOST } from "@/lib/config";
 import {
   atualizarMinhaUnidade,
   autorizarAtleta,
@@ -62,7 +63,7 @@ function AreaClube() {
     navigate({ to: "/auth", replace: true });
   }
 
-  const link = clube ? `https://karate-sparring.lovable.app/c/${clube.slug}` : "";
+  const link = clube ? siteUrl(`/c/${clube.slug}`) : "";
 
   return (
     <main className="grain min-h-screen">

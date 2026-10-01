@@ -161,19 +161,30 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
       throw new Error("Não conseguimos criar sua conta. Tente novamente em instantes.");
     }
 
-    await supabaseAdmin.from("user_roles").upsert(
+    // Se qualquer gravação falhar, desfazemos tudo para não deixar conta pela metade.
+    async function desfazer(): Promise<never> {
+      await supabaseAdmin.from("atleta_dojos").delete().eq("atleta_id", userId!);
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId!);
+      await supabaseAdmin.from("atletas").delete().eq("id", userId!);
+      await supabaseAdmin.auth.admin.deleteUser(userId!);
+      throw new Error("Não conseguimos criar sua conta. Tente novamente em instantes.");
+    }
+
+    const papel = await supabaseAdmin.from("user_roles").upsert(
       { user_id: userId, role: "atleta" as const },
       { onConflict: "user_id,role" },
     );
+    if (papel.error) await desfazer();
 
     // Pedido de entrada no clube: fica pendente até o sensei autorizar.
-    await supabaseAdmin.from("atleta_dojos").insert({
+    const pedido = await supabaseAdmin.from("atleta_dojos").insert({
       atleta_id: userId,
       sensei_id: unidade.clube_id,
       unidade_id: unidade.id,
       origem: "cadastro",
       status_autorizacao: "pendente",
     });
+    if (pedido.error) await desfazer();
 
     // Contato de marketing com o mesmo email passa a apontar para a conta.
     await supabaseAdmin
@@ -314,19 +325,48 @@ export const pedirEntradaNoClube = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: unidade } = await supabaseAdmin
-      .from("unidades")
-      .select("id, clube_id, ativa")
-      .eq("id", data.unidade_id)
-      .maybeSingle();
+
+    const [{ data: unidade }, { data: cfg }] = await Promise.all([
+      supabaseAdmin
+        .from("unidades")
+        .select("id, clube_id, ativa")
+        .eq("id", data.unidade_id)
+        .maybeSingle(),
+      supabaseAdmin.from("config").select("chave, valor"),
+    ]);
+
+    const valor = (chave: string) => (cfg ?? []).find((c) => c.chave === chave)?.valor;
+    if (valor("inscricoes_abertas") === "false") {
+      throw new Error("As inscrições da liga estão fechadas neste momento.");
+    }
     if (!unidade?.ativa) throw new Error("Esta unidade não está aberta para novos atletas.");
 
     const { data: clube } = await supabaseAdmin
       .from("senseis")
-      .select("link_publico_ativo")
+      .select("piloto, link_publico_ativo")
       .eq("id", unidade.clube_id)
       .maybeSingle();
     if (!clube?.link_publico_ativo) throw new Error("Este clube não está aberto para novos atletas.");
+    if (valor("modo_piloto") === "true" && !clube.piloto) {
+      throw new Error("Este clube ainda não está participando do piloto da liga.");
+    }
+
+    // Depois de uma recusa, o atleta só pode pedir de novo ao mesmo clube após 30 dias.
+    const limite = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: recusa } = await supabaseAdmin
+      .from("atleta_dojos")
+      .select("id")
+      .eq("atleta_id", context.userId)
+      .eq("sensei_id", unidade.clube_id)
+      .eq("status_autorizacao", "recusado")
+      .gte("solicitado_em", limite)
+      .limit(1)
+      .maybeSingle();
+    if (recusa) {
+      throw new Error(
+        "Este clube recusou seu pedido há menos de 30 dias. Escolha outro clube ou tente de novo depois desse prazo.",
+      );
+    }
 
     const { error } = await supabaseAdmin.from("atleta_dojos").insert({
       atleta_id: context.userId,
@@ -336,5 +376,34 @@ export const pedirEntradaNoClube = createServerFn({ method: "POST" })
       status_autorizacao: "pendente",
     });
     if (error) throw new Error("Não conseguimos registrar seu pedido agora.");
+    return { ok: true };
+  });
+
+const perfilInput = z.object({
+  nome: z.string().trim().min(3).max(120),
+  whatsapp: z.string().trim().min(10).max(20),
+  faixa: z.enum(FAIXAS),
+  aceite_marketing_eventos: z.boolean(),
+});
+
+/**
+ * Única porta de edição do perfil pelo próprio atleta. A lista de campos é fechada:
+ * data de nascimento, email e os aceites obrigatórios só mudam pelo admin.
+ */
+export const atualizarMeuPerfil = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => perfilInput.parse(data))
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("atletas")
+      .update({
+        nome: data.nome,
+        whatsapp: data.whatsapp,
+        faixa: data.faixa,
+        aceite_marketing_eventos: data.aceite_marketing_eventos,
+      })
+      .eq("id", context.userId);
+    if (error) throw new Error("Não conseguimos salvar seus dados agora.");
     return { ok: true };
   });
