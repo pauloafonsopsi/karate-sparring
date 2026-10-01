@@ -38,7 +38,7 @@ export const getMeuAcesso = createServerFn({ method: "GET" })
       sensei,
       atleta,
       sensei_id: senseiId,
-      area: admin ? "/admin" : sensei ? "/admin/dojos" : "/atleta",
+      area: admin ? "/admin" : sensei ? "/clube" : "/atleta",
     };
   });
 
