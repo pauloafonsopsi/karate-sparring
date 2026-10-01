@@ -33,7 +33,6 @@ import {
   listarUnidadesDoClube,
 } from "@/lib/unidades.functions";
 
-import { UFS } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
