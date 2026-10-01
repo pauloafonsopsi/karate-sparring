@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "atleta edita proprio perfil" ON public.atletas;
