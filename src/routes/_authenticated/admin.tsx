@@ -164,6 +164,7 @@ function AbaSenseis() {
   const [status, setStatus] = useState("");
   const [busca, setBusca] = useState("");
   const [aberto, setAberto] = useState<Sensei | null>(null);
+  const [novo, setNovo] = useState(false);
 
   const { data: senseis } = useQuery({
     queryKey: ["admin-senseis"],
