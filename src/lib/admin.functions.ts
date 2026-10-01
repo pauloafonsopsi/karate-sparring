@@ -30,6 +30,10 @@ export const PARAMETROS = {
   anuidade_unidade_extra_mensal_centavos: 6000,
   carencia_troca_dias: 60,
   bloqueio_recusa_dias: 30,
+  pontos_presenca: 10,
+  pontos_sequencia: 15,
+  pontos_curso: 25,
+  vagas_camp: 20,
 } as const;
 
 export type ChaveParametro = keyof typeof PARAMETROS;
@@ -92,6 +96,10 @@ const limites: Record<ChaveParametro, { min: number; max: number }> = {
   anuidade_unidade_extra_mensal_centavos: { min: 0, max: 5_000_00 },
   carencia_troca_dias: { min: 0, max: 365 },
   bloqueio_recusa_dias: { min: 0, max: 365 },
+  pontos_presenca: { min: 1, max: 1000 },
+  pontos_sequencia: { min: 1, max: 1000 },
+  pontos_curso: { min: 1, max: 1000 },
+  vagas_camp: { min: 1, max: 500 },
 };
 
 const configInput = z.object({
