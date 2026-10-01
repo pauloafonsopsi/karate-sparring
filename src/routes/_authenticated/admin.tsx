@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -29,6 +29,10 @@ import { UFS } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  beforeLoad: async () => {
+    const acesso = await getMeuAcesso();
+    if (!acesso.admin) throw redirect({ to: acesso.area, replace: true });
+  },
   head: () => ({
     meta: [
       { title: "Painel · Karate Legends Sparring" },
@@ -98,10 +102,6 @@ function Admin() {
   const qc = useQueryClient();
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Senseis");
   const { data: acesso } = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso() });
-
-  useEffect(() => {
-    if (acesso && !acesso.admin) void navigate({ to: acesso.area, replace: true });
-  }, [acesso, navigate]);
 
   async function sair() {
     await qc.cancelQueries();

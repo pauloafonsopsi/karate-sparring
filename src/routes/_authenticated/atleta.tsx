@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
@@ -12,6 +12,13 @@ import { cancelarMeuPedido, getMinhaConta } from "@/lib/atleta.functions";
 import { nomeDia } from "@/lib/semana";
 
 export const Route = createFileRoute("/_authenticated/atleta")({
+  beforeLoad: async () => {
+    const acesso = await getMeuAcesso();
+    // Admin e sensei entram pela própria área; quem não tem papel nenhum fica aqui.
+    if (!acesso.atleta && acesso.area !== "/atleta") {
+      throw redirect({ to: acesso.area, replace: true });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Minha conta · Karate Legends Sparring" },
