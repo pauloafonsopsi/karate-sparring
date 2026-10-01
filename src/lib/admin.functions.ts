@@ -31,7 +31,9 @@ export const PARAMETROS = {
   carencia_troca_dias: 60,
   bloqueio_recusa_dias: 30,
   pontos_presenca: 10,
+  pontos_assistiu: 5,
   pontos_sequencia: 15,
+  semanas_constancia: 4,
   pontos_curso: 25,
   vagas_camp: 20,
 } as const;
@@ -97,7 +99,9 @@ const limites: Record<ChaveParametro, { min: number; max: number }> = {
   carencia_troca_dias: { min: 0, max: 365 },
   bloqueio_recusa_dias: { min: 0, max: 365 },
   pontos_presenca: { min: 1, max: 1000 },
+  pontos_assistiu: { min: 1, max: 1000 },
   pontos_sequencia: { min: 1, max: 1000 },
+  semanas_constancia: { min: 1, max: 52 },
   pontos_curso: { min: 1, max: 1000 },
   vagas_camp: { min: 1, max: 500 },
 };
