@@ -58,7 +58,13 @@ type Sensei = {
   duracao_minutos: number;
   selo_status: string;
   onboarding_concluido: boolean;
+  slug: string;
+  mensalidade_centavos: number | null;
+  subconta_status: string;
+  anuidade_status: string;
+  link_publico_ativo: boolean | null;
 };
+
 
 type Lead = {
   id: string;
