@@ -583,3 +583,23 @@ export const definirPapelAdmin = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/* ============================ Recuperação de senha ============================ */
+
+export const gerarLinkRecuperacaoAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({ email: z.string().email(), origem: z.string().url() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await exigirAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const r = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email: data.email.trim().toLowerCase(),
+      options: { redirectTo: `${data.origem}/reset-password` },
+    });
+    const link = r.data?.properties?.action_link;
+    if (!link) throw new Error("Não conseguimos gerar o link agora.");
+    return { link };
+  });
