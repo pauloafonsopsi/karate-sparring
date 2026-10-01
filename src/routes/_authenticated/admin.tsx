@@ -716,6 +716,163 @@ function RaioDoDojo({ sensei }: { sensei: Sensei }) {
   );
 }
 
+const SUBCONTA = ["pendente", "em_analise", "aprovada", "recusada", "dispensada_piloto"] as const;
+const ANUIDADE = ["pendente", "paga", "isento_piloto", "estornada"] as const;
+
+function GestaoClube({ sensei }: { sensei: Sensei }) {
+  const qc = useQueryClient();
+  const listar = useServerFn(listarUnidadesDoClube);
+  const criar = useServerFn(criarUnidade);
+  const salvarSlug = useServerFn(definirSlugDoClube);
+  const salvarFin = useServerFn(definirSubcontaEAnuidade);
+
+  const [slug, setSlug] = useState(sensei.slug);
+  const [novaUnidade, setNovaUnidade] = useState("");
+
+  const { data: unidades } = useQuery({
+    queryKey: ["unidades-admin", sensei.id],
+    queryFn: () => listar({ data: { clube_id: sensei.id } }),
+  });
+
+  const recarregar = () => {
+    void qc.invalidateQueries({ queryKey: ["unidades-admin", sensei.id] });
+    void qc.invalidateQueries({ queryKey: ["admin-senseis"] });
+  };
+
+  const mSlug = useMutation({
+    mutationFn: () => salvarSlug({ data: { clube_id: sensei.id, slug: slug.trim() } }),
+    onSuccess: () => {
+      toast.success("Endereço do clube salvo.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos salvar o endereço."),
+  });
+
+  const mUnidade = useMutation({
+    mutationFn: () =>
+      criar({ data: { clube_id: sensei.id, nome: novaUnidade.trim(), endereco: null } }),
+    onSuccess: () => {
+      toast.success("Unidade criada.");
+      setNovaUnidade("");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos criar a unidade."),
+  });
+
+  const mFin = useMutation({
+    mutationFn: (patch: {
+      subconta_status?: (typeof SUBCONTA)[number];
+      anuidade_status?: (typeof ANUIDADE)[number];
+    }) => salvarFin({ data: { clube_id: sensei.id, ...patch } }),
+    onSuccess: () => {
+      toast.success("Situação do clube salva.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos salvar agora."),
+  });
+
+  return (
+    <div className="mt-6 space-y-6 border-t border-line pt-6">
+      <div>
+        <p className="eyebrow mb-3">Clube licenciado</p>
+        <p className="text-xs text-muted-fg">
+          Link público:{" "}
+          {sensei.link_publico_ativo
+            ? `karate-sparring.lovable.app/c/${sensei.slug}`
+            : "ainda não publicado"}
+          {" · "}
+          mensalidade do clube: {brl(sensei.mensalidade_centavos)}
+        </p>
+      </div>
+
+      <Field
+        label="Endereço do link (/c/...)"
+        hint="Trocar o endereço quebra links já compartilhados."
+      >
+        <div className="flex gap-2">
+          <TextInput
+            value={slug}
+            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+          />
+          <Btn disabled={mSlug.isPending} onClick={() => mSlug.mutate()}>
+            Salvar
+          </Btn>
+        </div>
+      </Field>
+
+      <div>
+        <Field label="Conta de recebimento do clube">
+          <SelectInput
+            value={sensei.subconta_status}
+            onChange={(e) =>
+              mFin.mutate({ subconta_status: e.target.value as (typeof SUBCONTA)[number] })
+            }
+          >
+            {SUBCONTA.map((s) => (
+              <option key={s} value={s}>
+                {s.replace(/_/g, " ")}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+        <div className="mt-4">
+          <Field label="Anuidade do clube">
+            <SelectInput
+              value={sensei.anuidade_status}
+              onChange={(e) =>
+                mFin.mutate({ anuidade_status: e.target.value as (typeof ANUIDADE)[number] })
+              }
+            >
+              {ANUIDADE.map((s) => (
+                <option key={s} value={s}>
+                  {s.replace(/_/g, " ")}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+        </div>
+      </div>
+
+      <div>
+        <p className="eyebrow mb-3">Unidades ({(unidades ?? []).length})</p>
+        <div className="space-y-2">
+          {(unidades ?? []).map((u) => (
+            <div
+              key={u.id}
+              className="flex flex-wrap items-center justify-between gap-3 border border-line p-3 text-sm"
+            >
+              <span>
+                {u.nome}
+                {u.is_sede ? " (sede)" : ""}
+                <span className="block text-xs text-muted-fg">
+                  {u.dia_aula ? nomeDia(u.dia_aula) : "dia não definido"} · raio {u.raio_metros} m
+                </span>
+              </span>
+              <Badge tone={u.ativa ? "ativo" : "muted"}>{u.ativa ? "ativa" : "inativa"}</Badge>
+            </div>
+          ))}
+        </div>
+        <Field label="Nova unidade">
+          <div className="mt-3 flex gap-2">
+            <TextInput
+              value={novaUnidade}
+              placeholder="Nome da unidade"
+              onChange={(e) => setNovaUnidade(e.target.value)}
+            />
+            <Btn
+              disabled={mUnidade.isPending || novaUnidade.trim().length < 2}
+              onClick={() => mUnidade.mutate()}
+            >
+              Criar
+            </Btn>
+          </div>
+        </Field>
+      </div>
+    </div>
+  );
+}
+
+
 const STATUS_FILIACAO = ["ativa", "pausada", "cancelada"] as const;
 
 function AbaFiliacoes() {
