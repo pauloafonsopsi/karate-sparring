@@ -156,17 +156,22 @@ export const definirSubcontaEAnuidade = createServerFn({ method: "POST" })
     await exigirAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      subconta_status?: string;
+      anuidade_iniciada_em?: string;
+      anuidade_status?: string;
+    } = {};
     if (data.subconta_status) {
-      patch["subconta_status"] = data.subconta_status;
+      patch.subconta_status = data.subconta_status;
       if (data.subconta_status === "aprovada") {
-        patch["anuidade_iniciada_em"] = new Date().toISOString();
+        patch.anuidade_iniciada_em = new Date().toISOString();
       }
     }
-    if (data.anuidade_status) patch["anuidade_status"] = data.anuidade_status;
+    if (data.anuidade_status) patch.anuidade_status = data.anuidade_status;
     if (Object.keys(patch).length === 0) return { ok: true };
 
     const { error } = await supabaseAdmin.from("senseis").update(patch).eq("id", data.clube_id);
+
     if (error) throw new Error("Não conseguimos salvar a situação financeira do clube.");
     return { ok: true };
   });
