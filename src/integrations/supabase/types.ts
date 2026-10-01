@@ -543,10 +543,10 @@ export type Database = {
           pais: string
           piloto: boolean
           raio_metros: number
+          recebedor_status: string
           selo_status: string
           slug: string
           status: string
-          subconta_status: string
           tempo_ensino: string | null
           uf: string
           whatsapp: string
@@ -586,10 +586,10 @@ export type Database = {
           pais?: string
           piloto?: boolean
           raio_metros?: number
+          recebedor_status?: string
           selo_status?: string
           slug: string
           status?: string
-          subconta_status?: string
           tempo_ensino?: string | null
           uf: string
           whatsapp: string
@@ -629,10 +629,10 @@ export type Database = {
           pais?: string
           piloto?: boolean
           raio_metros?: number
+          recebedor_status?: string
           selo_status?: string
           slug?: string
           status?: string
-          subconta_status?: string
           tempo_ensino?: string | null
           uf?: string
           whatsapp?: string

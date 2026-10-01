@@ -139,13 +139,13 @@ export const definirSlugDoClube = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const definirSubcontaEAnuidade = createServerFn({ method: "POST" })
+export const definirRecebedorEAnuidade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
     z
       .object({
         clube_id: z.string().uuid(),
-        subconta_status: z
+        recebedor_status: z
           .enum(["pendente", "em_analise", "aprovada", "recusada", "dispensada_piloto"])
           .optional(),
         anuidade_status: z.enum(["pendente", "paga", "isento_piloto", "estornada"]).optional(),
@@ -157,13 +157,13 @@ export const definirSubcontaEAnuidade = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const patch: {
-      subconta_status?: string;
+      recebedor_status?: string;
       anuidade_iniciada_em?: string;
       anuidade_status?: string;
     } = {};
-    if (data.subconta_status) {
-      patch.subconta_status = data.subconta_status;
-      if (data.subconta_status === "aprovada") {
+    if (data.recebedor_status) {
+      patch.recebedor_status = data.recebedor_status;
+      if (data.recebedor_status === "aprovada") {
         patch.anuidade_iniciada_em = new Date().toISOString();
       }
     }

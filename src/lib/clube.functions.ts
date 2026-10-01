@@ -57,7 +57,7 @@ export type MeuClube = {
   uf: string;
   status: string;
   piloto: boolean;
-  subconta_status: string;
+  recebedor_status: string;
   anuidade_status: string;
   link_publico_ativo: boolean;
   mensalidade_centavos: number | null;
@@ -212,7 +212,7 @@ export const getMeuClube = createServerFn({ method: "GET" })
     const { data: c } = await context.supabase
       .from("senseis")
       .select(
-        "id, slug, dojo, nome, cidade, uf, status, piloto, subconta_status, anuidade_status, link_publico_ativo, mensalidade_centavos, raio_metros, onboarding_concluido",
+        "id, slug, dojo, nome, cidade, uf, status, piloto, recebedor_status, anuidade_status, link_publico_ativo, mensalidade_centavos, raio_metros, onboarding_concluido",
       )
       .eq("id", clubeId)
       .maybeSingle();
@@ -235,7 +235,7 @@ export const getMeuClube = createServerFn({ method: "GET" })
       uf: c.uf,
       status: c.status,
       piloto: c.piloto,
-      subconta_status: c.subconta_status,
+      recebedor_status: c.recebedor_status,
       anuidade_status: c.anuidade_status,
       link_publico_ativo: c.link_publico_ativo ?? false,
       mensalidade_centavos: c.mensalidade_centavos,
@@ -263,7 +263,7 @@ export const getMeuClube = createServerFn({ method: "GET" })
 
 /**
  * Lista fechada de campos da unidade que o sensei pode alterar. Nunca inclui
- * raio, status, piloto, slug, subconta, anuidade ou link público.
+ * raio, status, piloto, slug, recebedor, anuidade ou link público.
  */
 const unidadeInput = z.object({
   unidade_id: z.string().uuid(),
