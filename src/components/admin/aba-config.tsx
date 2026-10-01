@@ -80,8 +80,12 @@ export function AbaConfig() {
   }, [cfg]);
 
   const salvar = useMutation({
-    mutationFn: (payload: Parameters<typeof salvarConfigAdmin>[0] extends never ? never : any) =>
-      salvarFn({ data: payload }),
+    mutationFn: (payload: {
+      modo_piloto?: boolean;
+      inscricoes_abertas?: boolean;
+      aviso_global?: string;
+      numeros?: Record<string, number>;
+    }) => salvarFn({ data: payload }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["admin-config"] });
       await qc.invalidateQueries({ queryKey: ["config"] });
