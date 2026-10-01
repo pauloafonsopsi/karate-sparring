@@ -25,18 +25,33 @@ export const PARAMETROS = {
   mensalidade_minima_centavos: 3000,
   mensalidade_sugerida_centavos: 12000,
   anuidade_centavos: 120000,
+  anuidade_mensal_centavos: 12000,
   anuidade_unidade_extra_centavos: 60000,
+  anuidade_unidade_extra_mensal_centavos: 6000,
   carencia_troca_dias: 60,
   bloqueio_recusa_dias: 30,
 } as const;
 
 export type ChaveParametro = keyof typeof PARAMETROS;
 
+/** Textos editáveis pelo admin (vitrine e Legends Camp). */
+export const TEXTOS = {
+  camp_titulo: "Legends Camp",
+  camp_data_local: "",
+  camp_texto:
+    "Os melhores do ranking de cada temporada são convocados para treinar com as lendas do karatê.",
+  camp_link: "",
+} as const;
+
+export type ChaveTexto = keyof typeof TEXTOS;
+
 export type ConfigAdmin = {
   modo_piloto: boolean;
   inscricoes_abertas: boolean;
+  camp_ativo: boolean;
   aviso_global: string;
   numeros: Record<ChaveParametro, number>;
+  textos: Record<ChaveTexto, string>;
 };
 
 export const getConfigAdmin = createServerFn({ method: "GET" })
@@ -52,12 +67,18 @@ export const getConfigAdmin = createServerFn({ method: "GET" })
       const v = Number(map.get(chave));
       numeros[chave] = Number.isFinite(v) && v > 0 ? v : PARAMETROS[chave];
     }
+    const textos = {} as Record<ChaveTexto, string>;
+    for (const chave of Object.keys(TEXTOS) as ChaveTexto[]) {
+      textos[chave] = map.has(chave) ? (map.get(chave) ?? "") : TEXTOS[chave];
+    }
 
     return {
       modo_piloto: map.get("modo_piloto") !== "false",
       inscricoes_abertas: map.get("inscricoes_abertas") !== "false",
+      camp_ativo: map.get("camp_ativo") !== "false",
       aviso_global: map.get("aviso_global") ?? "",
       numeros,
+      textos,
     };
   });
 
@@ -66,7 +87,9 @@ const limites: Record<ChaveParametro, { min: number; max: number }> = {
   mensalidade_minima_centavos: { min: 1000, max: 1_000_00 },
   mensalidade_sugerida_centavos: { min: 1000, max: 5_000_00 },
   anuidade_centavos: { min: 0, max: 50_000_00 },
+  anuidade_mensal_centavos: { min: 0, max: 5_000_00 },
   anuidade_unidade_extra_centavos: { min: 0, max: 50_000_00 },
+  anuidade_unidade_extra_mensal_centavos: { min: 0, max: 5_000_00 },
   carencia_troca_dias: { min: 0, max: 365 },
   bloqueio_recusa_dias: { min: 0, max: 365 },
 };
@@ -74,8 +97,18 @@ const limites: Record<ChaveParametro, { min: number; max: number }> = {
 const configInput = z.object({
   modo_piloto: z.boolean().optional(),
   inscricoes_abertas: z.boolean().optional(),
+  camp_ativo: z.boolean().optional(),
   aviso_global: z.string().trim().max(280).optional(),
   numeros: z.record(z.string(), z.number().int()).optional(),
+  textos: z
+    .object({
+      camp_titulo: z.string().trim().max(60),
+      camp_data_local: z.string().trim().max(80),
+      camp_texto: z.string().trim().max(400),
+      camp_link: z.union([z.literal(""), z.string().trim().url().max(300)]),
+    })
+    .partial()
+    .optional(),
 });
 
 export const salvarConfigAdmin = createServerFn({ method: "POST" })
@@ -94,6 +127,12 @@ export const salvarConfigAdmin = createServerFn({ method: "POST" })
     }
     if (data.aviso_global !== undefined) {
       linhas.push({ chave: "aviso_global", valor: data.aviso_global });
+    }
+    if (data.camp_ativo !== undefined) {
+      linhas.push({ chave: "camp_ativo", valor: String(data.camp_ativo) });
+    }
+    for (const [chave, valor] of Object.entries(data.textos ?? {})) {
+      if (valor !== undefined) linhas.push({ chave, valor });
     }
     for (const [chave, valor] of Object.entries(data.numeros ?? {})) {
       const lim = limites[chave as ChaveParametro];

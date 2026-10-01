@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -5,23 +6,24 @@ import { toast } from "sonner";
 import { OG_IMAGE } from "@/lib/config";
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
-import { criarAplicacaoSensei } from "@/lib/app.functions";
+import { criarAplicacaoSensei, getAppConfig } from "@/lib/app.functions";
+import { brl } from "@/lib/preco";
 import { UFS, isEmail, maskWhatsapp } from "@/lib/ufs";
 
 export const Route = createFileRoute("/sensei")({
   head: () => ({
     meta: [
-      { title: "Leve a World League para o seu dojô · Karate Legends Sparring" },
+      { title: "Licencie seu clube na World League · Karate Legends Sparring" },
       {
         name: "description",
         content:
-          "Você escolhe o dia do treino semanal, conduz com o método da liga e cobra dos seus alunos o que quiser. R$ 400/mês, com desconto de R$ 20 por atleta filiado.",
+          "Clube licenciado da liga: treino semanal de sparring, ranking oficial, caminho para o Legends Camp e mensalidade definida por você.",
       },
-      { property: "og:title", content: "Leve a World League para o seu dojô" },
+      { property: "og:title", content: "Licencie seu clube na World League" },
       {
         property: "og:description",
         content:
-          "R$ 400/mês, menos R$ 20 por atleta filiado. Com 20 atletas, sua filiação zera.",
+          "Treino semanal de sparring, ranking oficial e o Legends Camp. Você define a mensalidade e recebe direto.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -47,13 +49,15 @@ const GRADUACOES = [
 const TEMPOS = ["menos de 5", "5 a 10", "10 a 20", "mais de 20"];
 
 const PASSOS = [
-  "Aplique e seja aprovado.",
-  "Cadastre seu dojô e o dia do treino semanal.",
-  "Conduza o treino com o método da liga.",
-  "Seus atletas se filiam, marcam presença e disputam o ranking de onde saem os convocados do Legends Camp.",
+  "Aplique e seja aprovado pela curadoria da liga.",
+  "Cadastre a sede, o dia do treino semanal e a mensalidade do clube.",
+  "Divulgue o link exclusivo do seu clube e autorize seus atletas.",
+  "Conduza o treino com o método da liga. Seus atletas marcam presença, sobem no ranking e disputam a convocação para o Legends Camp.",
 ];
 
 function PaginaSensei() {
+  const { data: config } = useQuery({ queryKey: ["config"], queryFn: () => getAppConfig() });
+  const n = config?.numeros;
   const [form, setForm] = useState({
     nome: "",
     dojo: "",
@@ -123,25 +127,36 @@ function PaginaSensei() {
         <header className="mb-12">
           <Wordmark size="sm" />
           <h1 className="mt-10 text-[10vw] leading-[0.9] sm:text-5xl">
-            Leve a World League para o seu dojô
+            Licencie seu clube na World League
           </h1>
           <p className="mt-6 text-sm leading-relaxed text-muted-fg">
-            Você escolhe o dia do treino, cobra dos seus alunos o que quiser e recebe direto.
+            Chancela da liga, treino semanal de sparring, ranking oficial e caminho para o Legends
+            Camp. Você define a mensalidade e recebe direto.
           </p>
         </header>
 
         <section className="mb-14 space-y-8 border-y border-line py-10">
           <div>
-            <div className="fight-number text-brand">R$ 400</div>
-            <p className="mt-2 text-sm text-muted-fg">por mês, sua filiação de sensei</p>
+            <div className="fight-number text-brand">{brl(n?.anuidade_centavos ?? null)}</div>
+            <p className="mt-2 text-sm text-muted-fg">
+              por ano de licença do clube, ou {brl(n?.anuidade_mensal_centavos ?? null)}/mês. Os 12
+              meses contam a partir da ativação do seu link.
+            </p>
           </div>
           <div>
-            <div className="fight-number">−R$ 20</div>
-            <p className="mt-2 text-sm text-muted-fg">de desconto por atleta filiado do seu dojô</p>
+            <div className="fight-number">{brl(n?.anuidade_unidade_extra_centavos ?? null)}</div>
+            <p className="mt-2 text-sm text-muted-fg">
+              por unidade extra ao ano, ou {brl(n?.anuidade_unidade_extra_mensal_centavos ?? null)}
+              /mês
+            </p>
           </div>
           <div>
-            <div className="fight-number">20 atletas</div>
-            <p className="mt-2 text-sm text-muted-fg">sua filiação zera</p>
+            <div className="fight-number">Seu preço</div>
+            <p className="mt-2 text-sm text-muted-fg">
+              Você define a mensalidade do clube (mínimo {brl(n?.mensalidade_minima_centavos ?? null)}
+              ). O atleta paga junto a filiação à liga de{" "}
+              {brl(n?.filiacao_liga_centavos ?? null)}, e o seu valor cai direto na sua conta.
+            </p>
           </div>
         </section>
 
