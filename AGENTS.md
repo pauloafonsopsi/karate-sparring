@@ -18,7 +18,6 @@
 - Modelo clube → unidades: `senseis` é o clube; alfinete, raio, fuso e dados da aula ficam em `unidades` (sede por trigger), porque a presença da etapa 2 aponta para a unidade. Área do clube é `/clube`; `/admin/dojos` só redireciona.
 - `senseis.link_publico_ativo` é coluna gerada (`status='ativo' AND (piloto OR recebedor_status='aprovada')`), nunca trigger.
 - Edições por server function com lista fechada de campos: `atualizarMinhaUnidade`, `definirMinhaMensalidade` (sensei) e `atualizarMeuPerfil` (atleta: nome, whatsapp, faixa, marketing — sem policy de UPDATE em `atletas`). Raio, status, piloto, slug, recebedor e anuidade são do admin.
-- Convite de sensei: padrão é gerar link (`generateLink` invite) para enviar pelo WhatsApp, pois o SMTP sem domínio próprio limita 30 emails/hora; email é botão separado. Email com conta existente só recebe vínculo de papel após confirmação do admin, nunca link de entrada.
-- Cadastro de atleta usa `email_confirm: true` pelo mesmo limite de SMTP; reativar a confirmação quando houver domínio próprio.
+- SMTP sem domínio próprio limita 30 emails/hora: convite de sensei usa `generateLink` invite (email é botão separado) e cadastro de atleta usa `email_confirm: true` — reativar confirmação com domínio próprio. Email com conta existente só recebe vínculo de papel após confirmação do admin, nunca link de entrada.
 - No piloto, autorizar atleta cria filiação `provedor='piloto_cortesia'`; fora do piloto a autorização só libera o pagamento.
-
+- Parâmetros de negócio (valores, prazos, chaves, aviso global) ficam na tabela `config` e são editados na aba Config do `/admin`; o código lê do banco com fallback, nunca valores fixos.

@@ -4,12 +4,20 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { AbaAcessos } from "@/components/admin/aba-acessos";
+import { AbaAtletas } from "@/components/admin/aba-atletas";
+import { AbaConfig } from "@/components/admin/aba-config";
+import { EditorUnidade } from "@/components/admin/editor-unidade";
+import { NovoClube } from "@/components/admin/novo-clube";
 import { Wordmark } from "@/components/brand";
 import { Badge, Btn, Field, SelectInput, TextInput } from "@/components/kit";
 import { TrocaArea } from "@/components/troca-area";
 import { supabase } from "@/integrations/supabase/client";
 import { convidarSensei, getMeuAcesso, type ResultadoConvite } from "@/lib/acesso.functions";
+import { atualizarClubeAdmin } from "@/lib/admin.functions";
 import { SITE_HOST } from "@/lib/config";
+import { baixarCsv } from "@/lib/csv";
+import { UFS } from "@/lib/ufs";
 import {
   definirFiliacaoManual,
   definirRaioDoDojo,
@@ -25,7 +33,6 @@ import {
   listarUnidadesDoClube,
 } from "@/lib/unidades.functions";
 
-import { UFS } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -91,7 +98,7 @@ type Lead = {
   created_at: string | null;
 };
 
-const ABAS = ["Senseis", "Filiações", "Leads", "Config"] as const;
+const ABAS = ["Clubes", "Atletas", "Filiações", "Leads", "Acessos", "Config"] as const;
 
 function dataBr(v: string | null) {
   return v ? new Date(v).toLocaleDateString("pt-BR") : "—";
@@ -100,7 +107,7 @@ function dataBr(v: string | null) {
 function Admin() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [aba, setAba] = useState<(typeof ABAS)[number]>("Senseis");
+  const [aba, setAba] = useState<(typeof ABAS)[number]>("Clubes");
   const { data: acesso } = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso() });
 
   async function sair() {
@@ -138,9 +145,11 @@ function Admin() {
         </nav>
 
         <div className="mt-8">
-          {aba === "Senseis" && <AbaSenseis />}
+          {aba === "Clubes" && <AbaSenseis />}
+          {aba === "Atletas" && <AbaAtletas />}
           {aba === "Filiações" && <AbaFiliacoes />}
           {aba === "Leads" && <AbaLeads />}
+          {aba === "Acessos" && <AbaAcessos />}
           {aba === "Config" && <AbaConfig />}
         </div>
       </div>
@@ -155,6 +164,7 @@ function AbaSenseis() {
   const [status, setStatus] = useState("");
   const [busca, setBusca] = useState("");
   const [aberto, setAberto] = useState<Sensei | null>(null);
+  const [novo, setNovo] = useState(false);
 
   const { data: senseis } = useQuery({
     queryKey: ["admin-senseis"],
@@ -228,6 +238,43 @@ function AbaSenseis() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
+        <Btn onClick={() => setNovo(true)}>+ Novo clube</Btn>
+        <Btn
+          variant="outline"
+          onClick={() =>
+            baixarCsv(
+              "clubes-karate-legends",
+              [
+                "dojo",
+                "sensei",
+                "email",
+                "whatsapp",
+                "cidade",
+                "uf",
+                "status",
+                "piloto",
+                "mensalidade",
+                "link",
+                "aplicou_em",
+              ],
+              lista.map((s) => [
+                s.dojo,
+                s.nome,
+                s.email,
+                s.whatsapp,
+                s.cidade,
+                s.uf,
+                s.status,
+                s.piloto ? "sim" : "não",
+                brl(s.mensalidade_centavos),
+                s.link_publico_ativo ? `${SITE_HOST}/c/${s.slug}` : "",
+                dataBr(s.created_at),
+              ]),
+            )
+          }
+        >
+          Exportar CSV
+        </Btn>
       </div>
 
       <div className="overflow-x-auto border border-line">
@@ -302,6 +349,8 @@ function AbaSenseis() {
         </table>
       </div>
 
+      {novo && <NovoClube onClose={() => setNovo(false)} />}
+
       {aberto && (
         <PainelSensei
           sensei={aberto}
@@ -322,9 +371,57 @@ function PainelSensei({
   onClose: () => void;
   onSave: (patch: Partial<Sensei>) => void;
 }) {
+  const qc = useQueryClient();
+  const salvarClubeFn = useServerFn(atualizarClubeAdmin);
   const [f, setF] = useState({
+    dojo: sensei.dojo,
+    nome: sensei.nome,
+    email: sensei.email,
+    whatsapp: sensei.whatsapp,
+    cidade: sensei.cidade,
+    uf: sensei.uf,
+    graduacao: sensei.graduacao ?? "",
+    tempo_ensino: sensei.tempo_ensino ?? "",
+    instagram: sensei.instagram ?? "",
+    mensalidade: sensei.mensalidade_centavos
+      ? (sensei.mensalidade_centavos / 100).toFixed(2).replace(".", ",")
+      : "",
     foto_url: sensei.foto_url ?? "",
     obs: sensei.obs ?? "",
+  });
+
+  const salvarClube = useMutation({
+    mutationFn: () => {
+      const bruto = f.mensalidade.trim();
+      let centavos: number | null = null;
+      if (bruto) {
+        const n = Number(bruto.replace(/\./g, "").replace(",", "."));
+        if (!Number.isFinite(n)) throw new Error("Mensalidade inválida.");
+        centavos = Math.round(n * 100);
+      }
+      return salvarClubeFn({
+        data: {
+          clube_id: sensei.id,
+          dojo: f.dojo.trim(),
+          nome: f.nome.trim(),
+          email: f.email.trim(),
+          whatsapp: f.whatsapp.trim(),
+          cidade: f.cidade.trim(),
+          uf: f.uf,
+          graduacao: f.graduacao.trim() || null,
+          tempo_ensino: f.tempo_ensino.trim() || null,
+          instagram: f.instagram.trim() || null,
+          mensalidade_centavos: centavos,
+          foto_url: f.foto_url.trim() || null,
+          obs: f.obs.trim() || null,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admin-senseis"] });
+      toast.success("Dados do clube salvos.");
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos salvar o clube."),
   });
 
   const convidarFn = useServerFn(convidarSensei);
@@ -418,7 +515,64 @@ function PainelSensei({
         <GestaoClube sensei={sensei} />
 
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 border-t border-line pt-6">
+          <p className="eyebrow">Dados do clube</p>
+          <Field label="Nome do dojô">
+            <TextInput value={f.dojo} onChange={(e) => setF({ ...f, dojo: e.target.value })} />
+          </Field>
+          <Field label="Sensei responsável">
+            <TextInput value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} />
+          </Field>
+          <Field label="Email" hint="É o email de acesso ao painel do clube.">
+            <TextInput
+              type="email"
+              value={f.email}
+              onChange={(e) => setF({ ...f, email: e.target.value })}
+            />
+          </Field>
+          <Field label="WhatsApp">
+            <TextInput
+              value={f.whatsapp}
+              onChange={(e) => setF({ ...f, whatsapp: e.target.value })}
+            />
+          </Field>
+          <Field label="Cidade">
+            <TextInput value={f.cidade} onChange={(e) => setF({ ...f, cidade: e.target.value })} />
+          </Field>
+          <Field label="UF">
+            <SelectInput value={f.uf} onChange={(e) => setF({ ...f, uf: e.target.value })}>
+              {UFS.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+          <Field label="Graduação">
+            <TextInput
+              value={f.graduacao}
+              onChange={(e) => setF({ ...f, graduacao: e.target.value })}
+            />
+          </Field>
+          <Field label="Tempo de ensino">
+            <TextInput
+              value={f.tempo_ensino}
+              onChange={(e) => setF({ ...f, tempo_ensino: e.target.value })}
+            />
+          </Field>
+          <Field label="Instagram">
+            <TextInput
+              value={f.instagram}
+              onChange={(e) => setF({ ...f, instagram: e.target.value })}
+            />
+          </Field>
+          <Field label="Mensalidade do clube (R$)" hint="Deixe vazio se o clube ainda não definiu.">
+            <TextInput
+              inputMode="decimal"
+              value={f.mensalidade}
+              onChange={(e) => setF({ ...f, mensalidade: e.target.value })}
+            />
+          </Field>
           <Field label="Foto (URL)">
             <TextInput
               value={f.foto_url}
@@ -431,18 +585,34 @@ function PainelSensei({
           <Btn
             full
             variant="outline"
-            onClick={() =>
-              onSave({
-                foto_url: f.foto_url.trim() || null,
-                obs: f.obs.trim() || null,
-              })
-            }
+            disabled={salvarClube.isPending}
+            onClick={() => salvarClube.mutate()}
           >
-            Salvar dados
+            {salvarClube.isPending ? "Salvando" : "Salvar dados do clube"}
           </Btn>
         </div>
 
         <div className="mt-8 space-y-3 border-t border-line pt-6">
+          <Field label="Status do clube" hint="Muda na hora, sem passo intermediário.">
+            <SelectInput
+              value={sensei.status}
+              onChange={(e) => onSave({ status: e.target.value })}
+            >
+              {["aplicou", "aprovado", "ativo", "inativo"].map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+          <div className="flex items-center justify-between border border-line p-4">
+            <span className="text-sm">Clube do piloto</span>
+            <button
+              aria-label="Clube do piloto"
+              onClick={() => onSave({ piloto: !sensei.piloto })}
+              className={`h-7 w-12 border ${sensei.piloto ? "border-brand bg-brand" : "border-line"}`}
+            />
+          </div>
           {sensei.status === "aplicou" && (
             <Btn full onClick={() => onSave({ status: "aprovado" })}>
               Aprovar
@@ -671,54 +841,6 @@ function AbaLeads() {
   );
 }
 
-/* ---------------- CONFIG ---------------- */
-
-function AbaConfig() {
-  const qc = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["admin-config"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("config").select("chave, valor");
-      if (error) throw error;
-      return new Map((data ?? []).map((r) => [r.chave, r.valor ?? ""]));
-    },
-  });
-
-
-  const set = useMutation({
-    mutationFn: async ({ chave, valor }: { chave: string; valor: string }) => {
-      const { error } = await supabase.from("config").update({ valor }).eq("chave", chave);
-      if (error) throw error;
-    },
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["admin-config"] });
-      await qc.invalidateQueries({ queryKey: ["config"] });
-      toast.success("Configuração atualizada.");
-    },
-    onError: () => toast.error("Não foi possível atualizar."),
-  });
-
-  const toggle = (chave: string, label: string) => {
-    const ativo = data?.get(chave) !== "false";
-    return (
-      <div className="flex items-center justify-between border border-line bg-surface p-4">
-        <span className="text-sm">{label}</span>
-        <button
-          onClick={() => set.mutate({ chave, valor: ativo ? "false" : "true" })}
-          className={`h-7 w-12 border ${ativo ? "border-brand bg-brand" : "border-line"}`}
-        />
-      </div>
-    );
-  };
-
-  return (
-    <div className="max-w-xl space-y-4">
-      {toggle("modo_piloto", "Modo piloto")}
-      {toggle("inscricoes_abertas", "Inscrições abertas")}
-    </div>
-  );
-}
-
 function RaioDoDojo({ sensei }: { sensei: Sensei }) {
   const qc = useQueryClient();
   const salvarRaio = useServerFn(definirRaioDoDojo);
@@ -868,19 +990,7 @@ function GestaoClube({ sensei }: { sensei: Sensei }) {
         <p className="eyebrow mb-3">Unidades ({(unidades ?? []).length})</p>
         <div className="space-y-2">
           {(unidades ?? []).map((u) => (
-            <div
-              key={u.id}
-              className="flex flex-wrap items-center justify-between gap-3 border border-line p-3 text-sm"
-            >
-              <span>
-                {u.nome}
-                {u.is_sede ? " (sede)" : ""}
-                <span className="block text-xs text-muted-fg">
-                  {u.dia_aula ? nomeDia(u.dia_aula) : "dia não definido"} · raio {u.raio_metros} m
-                </span>
-              </span>
-              <Badge tone={u.ativa ? "ativo" : "muted"}>{u.ativa ? "ativa" : "inativa"}</Badge>
-            </div>
+            <EditorUnidade key={u.id} unidade={u} onMudou={recarregar} />
           ))}
         </div>
         <Field label="Nova unidade">

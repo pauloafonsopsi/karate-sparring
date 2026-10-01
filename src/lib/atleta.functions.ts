@@ -351,21 +351,25 @@ export const pedirEntradaNoClube = createServerFn({ method: "POST" })
       throw new Error("Este clube ainda não está participando do piloto da liga.");
     }
 
-    // Depois de uma recusa, o atleta só pode pedir de novo ao mesmo clube após 30 dias.
-    const limite = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: recusa } = await supabaseAdmin
-      .from("atleta_dojos")
-      .select("id")
-      .eq("atleta_id", context.userId)
-      .eq("sensei_id", unidade.clube_id)
-      .eq("status_autorizacao", "recusado")
-      .gte("solicitado_em", limite)
-      .limit(1)
-      .maybeSingle();
-    if (recusa) {
-      throw new Error(
-        "Este clube recusou seu pedido há menos de 30 dias. Escolha outro clube ou tente de novo depois desse prazo.",
-      );
+    // Depois de uma recusa, o atleta só pode pedir de novo ao mesmo clube após o prazo configurado.
+    const bruto = Number(valor("bloqueio_recusa_dias"));
+    const bloqueio = Number.isFinite(bruto) && bruto >= 0 ? bruto : 30;
+    if (bloqueio > 0) {
+      const limite = new Date(Date.now() - bloqueio * 86_400_000).toISOString();
+      const { data: recusa } = await supabaseAdmin
+        .from("atleta_dojos")
+        .select("id")
+        .eq("atleta_id", context.userId)
+        .eq("sensei_id", unidade.clube_id)
+        .eq("status_autorizacao", "recusado")
+        .gte("solicitado_em", limite)
+        .limit(1)
+        .maybeSingle();
+      if (recusa) {
+        throw new Error(
+          `Este clube recusou seu pedido há menos de ${bloqueio} dias. Escolha outro clube ou tente de novo depois desse prazo.`,
+        );
+      }
     }
 
     const { error } = await supabaseAdmin.from("atleta_dojos").insert({
