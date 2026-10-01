@@ -121,6 +121,9 @@ function Cabecalho() {
               {n.label}
             </a>
           ))}
+          <Link to="/ranking" className="eyebrow hover:text-foreground">
+            Ranking
+          </Link>
           <Link to="/sensei" className="eyebrow hover:text-foreground">
             Para senseis
           </Link>
@@ -140,13 +143,14 @@ function Cabecalho() {
 
 function Hero() {
   return (
-    <section className="relative isolate flex min-h-[100svh] items-end overflow-hidden md:items-center">
+    <section className="relative isolate flex min-h-[100svh] items-end overflow-hidden md:items-center" style={{ backgroundImage: "radial-gradient(ellipse at 75% 25%, color-mix(in oklab, var(--marsala) 85%, transparent), var(--background) 70%)" }}>
       <picture className="absolute inset-0 -z-20">
         <source media="(min-width: 768px)" srcSet={heroDesktopAsset.url} />
         <img
           src={heroMobileAsset.url}
           alt="Dois atletas de karatê em sparring sob as luzes de uma arena"
           fetchPriority="high"
+          decoding="async"
           className="h-full w-full object-cover object-[60%_20%] md:object-[70%_30%]"
         />
       </picture>
@@ -167,36 +171,22 @@ function Hero() {
             toda semana
           </h1>
           <p className="mt-6 max-w-md text-base leading-relaxed text-foreground/80">
-            Uma turma semanal de combate num clube licenciado perto de você, sem sair do seu
-            dojô. Cada treino conta no ranking. Os melhores podem ser convocados para o Legends
-            Camp.
+            Uma turma de combate por semana. Cada treino conta no ranking.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
               href="#clubes"
               className="inline-flex min-h-14 items-center justify-center bg-brand px-8 text-sm font-semibold tracking-[0.14em] text-background uppercase hover:bg-gold-soft"
             >
-              Encontrar meu clube
+              Buscar clube
             </a>
             <Link
               to="/sensei"
               className="inline-flex min-h-14 items-center justify-center border border-foreground/30 px-8 text-sm font-semibold tracking-[0.14em] text-foreground uppercase hover:border-foreground"
             >
-              Sou sensei, quero licenciar
+              Licenciar clube
             </Link>
           </div>
-          <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-foreground/15 pt-6">
-            {[
-              ["1×", "treino por semana"],
-              ["18+", "só adultos"],
-              ["1", "ranking da liga"],
-            ].map(([n, t]) => (
-              <div key={t}>
-                <dt className="display text-3xl">{n}</dt>
-                <dd className="mt-1 text-xs text-muted-fg">{t}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
       </div>
     </section>
@@ -207,14 +197,14 @@ function Hero() {
 
 function Rotina() {
   const passos = [
-    ["01", "Escolha o clube", "Encontre o clube licenciado da sua região e veja o preço total antes de se cadastrar."],
-    ["02", "Seja autorizado", "Cadastre-se pelo link do clube. O sensei confirma sua entrada na turma da liga."],
-    ["03", "Treine e marque presença", "Uma vez por semana, sparring com método da liga. Presença confirmada pelo sensei."],
-    ["04", "Suba no ranking", "Cada semana conta. A sequência de presenças pesa na sua posição."],
+    ["01", "Escolha o clube", "Veja o preço total antes de se cadastrar."],
+    ["02", "Seja autorizado", "O sensei confirma sua entrada na turma."],
+    ["03", "Treine e marque presença", "Sparring semanal, presença confirmada pelo sensei."],
+    ["04", "Suba no ranking", "Cada semana conta na sua posição."],
   ];
   return (
     <section id="rotina" className="relative scroll-mt-10 border-t border-line">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 md:grid-cols-[1fr_1.1fr] md:px-10 md:py-28">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 md:grid-cols-[1fr_1.1fr] md:px-10 md:py-36">
         <div>
           <p className="eyebrow">A rotina</p>
           <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">
@@ -223,14 +213,14 @@ function Rotina() {
             <span className="text-muted-fg">Toda semana.</span>
           </h2>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-fg">
-            A turma da liga é um treino semanal à parte das suas aulas regulares. Você continua no
-            seu dojô, com seu sensei. A liga soma: mais combate, um ranking e um objetivo.
+            Um treino extra por semana. Você continua no seu dojô, com seu sensei.
           </p>
           <div className="relative mt-10 aspect-[4/3] overflow-hidden">
             <img
               src={rotinaAsset.url}
               alt="Chute alto durante um sparring"
               loading="lazy"
+              decoding="async"
               width={1000}
               height={667}
               className="h-full w-full object-cover"
@@ -264,16 +254,16 @@ function Passaporte() {
         alt=""
         aria-hidden
         loading="lazy"
+              decoding="async"
         className="absolute inset-0 -z-10 h-full w-full object-cover opacity-70"
       />
       <div className="absolute inset-0 -z-10" style={{ backgroundImage: "var(--fade-bottom)" }} />
-      <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-20 md:grid-cols-2 md:px-10 md:py-28">
+      <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-24 md:grid-cols-2 md:px-10 md:py-36">
         <div>
           <p className="eyebrow">O que você ganha</p>
           <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Seu passaporte de atleta</h2>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-fg">
-            Cada atleta filiado tem um passaporte na liga: clube, posição no ranking e a
-            sequência de semanas treinadas. É a sua história de combate, semana após semana.
+            Clube, posição no ranking e semanas treinadas. Sua história de combate.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
             {["Posição no ranking da liga", "Sequência de semanas sem faltar", "Histórico de presença no clube"].map((t) => (
@@ -283,6 +273,9 @@ function Passaporte() {
               </li>
             ))}
           </ul>
+          <Link to="/ranking" className="eyebrow mt-10 inline-block border-b border-foreground/30 pb-1 text-foreground hover:border-foreground">
+            Como funciona o ranking
+          </Link>
         </div>
 
         {/* Cartão ilustrativo */}
@@ -344,6 +337,7 @@ function Camp({ config }: { config: Config }) {
         src={campAsset.url}
         alt="Arena do Legends Camp com público e luzes"
         loading="lazy"
+              decoding="async"
         width={1400}
         height={933}
         className="absolute inset-0 -z-20 h-full w-full object-cover object-[65%_center]"
@@ -371,7 +365,7 @@ function Camp({ config }: { config: Config }) {
               rel="noreferrer"
               className="mt-8 inline-flex min-h-13 items-center border border-foreground/40 px-6 text-sm font-semibold tracking-[0.14em] uppercase hover:border-foreground"
             >
-              Conhecer o Camp
+              Ver o Camp
             </a>
           )}
         </div>
@@ -400,7 +394,7 @@ function Vitrine({
 
   return (
     <section id="clubes" className="scroll-mt-10 border-t border-line">
-      <div className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
+      <div className="mx-auto max-w-7xl px-5 py-24 md:px-10 md:py-36">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="eyebrow">Clubes licenciados</p>
@@ -461,7 +455,7 @@ function EstadoVazio({ uf }: { uf: string }) {
         <h3 className="mt-3 text-3xl leading-[0.9]">
           Ainda não chegou{uf ? ` em ${uf}` : " aí"}?
           <br />
-          Me avise quando chegar
+          Avisar-me
         </h3>
         <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-fg">
           Deixe seu contato. Você será avisado quando abrir um clube licenciado na sua região.
@@ -475,6 +469,7 @@ function EstadoVazio({ uf }: { uf: string }) {
           src={chuteAsset}
           alt="Sparring de karatê em treino noturno"
           loading="lazy"
+              decoding="async"
           className="absolute inset-0 -z-10 h-full w-full object-cover object-top opacity-45"
         />
         <div
@@ -613,7 +608,7 @@ function ListaEspera({ ufInicial }: { ufInicial: string }) {
         Autorizo o contato e o uso dos meus dados conforme a Política de Privacidade.
       </Check>
       <Btn full disabled={enviando} onClick={() => void enviar()}>
-        {enviando ? "Enviando" : "Me avise quando chegar"}
+        {enviando ? "Enviando" : "Avisar-me"}
       </Btn>
     </div>
   );
@@ -633,6 +628,7 @@ function CardClube({ clube, onClick }: { clube: ClubeDaVitrine; onClick: () => v
           src={clube.foto_url ?? rotinaAsset.url}
           alt={clube.clube}
           loading="lazy"
+              decoding="async"
           className="h-full w-full object-cover grayscale group-hover:grayscale-0"
         />
         <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(to top, var(--card), transparent 70%)" }} />
@@ -687,7 +683,7 @@ function Faq({ filiacao }: { filiacao: number }) {
   ];
   return (
     <section id="faq" className="scroll-mt-10 border-t border-line">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[1fr_2fr] md:px-10 md:py-28">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-24 md:grid-cols-[1fr_2fr] md:px-10 md:py-36">
         <div>
           <p className="eyebrow">Perguntas</p>
           <h2 className="mt-4 text-4xl leading-[0.9] md:text-5xl">O que todo mundo pergunta</h2>
@@ -716,6 +712,9 @@ function Rodape() {
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:justify-between md:px-10">
         <MarcaCompacta />
         <div className="flex flex-wrap gap-6">
+          <Link to="/ranking" className="eyebrow hover:text-foreground">
+            Ranking
+          </Link>
           <Link to="/sensei" className="eyebrow hover:text-foreground">
             Para senseis
           </Link>
