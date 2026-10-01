@@ -6,9 +6,9 @@ import type { MeuAcesso } from "@/lib/acesso.functions";
 export function TrocaArea({ acesso, atual }: { acesso: MeuAcesso | undefined; atual: string }) {
   if (!acesso) return null;
 
-  const areas: { to: "/admin" | "/admin/dojos" | "/atleta"; label: string }[] = [];
+  const areas: { to: "/admin" | "/clube" | "/atleta"; label: string }[] = [];
   if (acesso.admin) areas.push({ to: "/admin", label: "Painel" });
-  if (acesso.sensei || acesso.admin) areas.push({ to: "/admin/dojos", label: "Meu dojô" });
+  if (acesso.sensei || acesso.admin) areas.push({ to: "/clube", label: "Meu clube" });
   if (acesso.atleta) areas.push({ to: "/atleta", label: "Sou atleta" });
 
   const outras = areas.filter((a) => a.to !== atual);
