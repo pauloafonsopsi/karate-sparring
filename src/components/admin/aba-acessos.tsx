@@ -4,7 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Badge, Btn, TextInput } from "@/components/kit";
-import { definirPapelAdmin, listarUsuariosAdmin } from "@/lib/admin.functions";
+import {
+  definirPapelAdmin,
+  gerarLinkRecuperacaoAdmin,
+  listarUsuariosAdmin,
+} from "@/lib/admin.functions";
 import { baixarCsv } from "@/lib/csv";
 
 const PAPEIS = ["admin", "sensei", "atleta"] as const;
@@ -32,6 +36,21 @@ export function AbaAcessos() {
       toast.success("Acesso atualizado.");
     },
     onError: (e: Error) => toast.error(e.message || "Não conseguimos mudar o acesso."),
+  });
+
+  const recuperarFn = useServerFn(gerarLinkRecuperacaoAdmin);
+  const recuperar = useMutation({
+    mutationFn: (email: string) =>
+      recuperarFn({ data: { email, origem: window.location.origin } }),
+    onSuccess: async ({ link }) => {
+      try {
+        await navigator.clipboard.writeText(link);
+        toast.success("Link copiado. Envie pelo WhatsApp para a pessoa.");
+      } catch {
+        window.prompt("Copie o link:", link);
+      }
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos gerar o link."),
   });
 
   const termo = busca.trim().toLowerCase();
@@ -86,6 +105,13 @@ export function AbaAcessos() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Btn
+                variant="ghost"
+                disabled={recuperar.isPending}
+                onClick={() => recuperar.mutate(u.email)}
+              >
+                Link de nova senha
+              </Btn>
               {PAPEIS.map((p) => {
                 const tem = u.papeis.includes(p);
                 return (

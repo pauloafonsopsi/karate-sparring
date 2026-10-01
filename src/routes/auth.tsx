@@ -26,6 +26,25 @@ function Auth() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [entrando, setEntrando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  async function recuperar() {
+    const alvo = email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(alvo)) {
+      toast.error("Digite seu email no campo acima.");
+      return;
+    }
+    setEnviando(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(alvo, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setEnviando(false);
+    if (error && error.status === 429) {
+      toast.error("Muitos pedidos agora. Tente de novo em uma hora.");
+      return;
+    }
+    toast.success("Se esse email estiver cadastrado, você receberá um link para criar nova senha.");
+  }
 
   async function entrar() {
     setEntrando(true);
@@ -80,6 +99,14 @@ function Auth() {
             {entrando ? "Entrando" : "Entrar"}
           </Btn>
         </form>
+        <button
+          type="button"
+          className="mt-4 text-sm text-muted-fg underline hover:text-foreground"
+          onClick={() => void recuperar()}
+          disabled={enviando}
+        >
+          {enviando ? "Enviando" : "Esqueci minha senha"}
+        </button>
         <p className="mt-6 text-sm text-muted-fg">
           Ainda não tem conta?{" "}
           <Link to="/" className="text-foreground underline">
