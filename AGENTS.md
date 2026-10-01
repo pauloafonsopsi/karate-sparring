@@ -22,3 +22,5 @@
 - Cadastro de atleta usa `email_confirm: true` pelo mesmo limite de SMTP; reativar a confirmação quando houver domínio próprio.
 - No piloto, autorizar atleta cria filiação `provedor='piloto_cortesia'`; fora do piloto a autorização só libera o pagamento.
 
+
+- Backoffice do admin: parâmetros de negócio (filiação da liga, mensalidade mínima/sugerida, anuidades, carência de troca, bloqueio após recusa, aviso global) ficam na tabela `config` e são editados na aba Config; o código lê do banco com fallback, nunca valores fixos.
