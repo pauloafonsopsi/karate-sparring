@@ -1,21 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { PARAMETROS, TEXTOS, type ChaveParametro, type ChaveTexto } from "@/lib/admin.functions";
+
 export type AppConfig = {
   modo_piloto: boolean;
   inscricoes_abertas: boolean;
   aviso_global: string;
-};
-
-export type PublicSensei = {
-  id: string;
-  nome: string;
-  dojo: string;
-  cidade: string;
-  uf: string;
-  graduacao: string | null;
-  foto_url: string | null;
-  piloto: boolean;
+  camp_ativo: boolean;
+  numeros: Record<ChaveParametro, number>;
+  textos: Record<ChaveTexto, string>;
 };
 
 export const getAppConfig = createServerFn({ method: "GET" }).handler(
@@ -23,10 +17,22 @@ export const getAppConfig = createServerFn({ method: "GET" }).handler(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin.from("config").select("chave, valor");
     const map = new Map((data ?? []).map((r) => [r.chave, r.valor]));
+    const numeros = {} as Record<ChaveParametro, number>;
+    for (const chave of Object.keys(PARAMETROS) as ChaveParametro[]) {
+      const v = Number(map.get(chave));
+      numeros[chave] = Number.isFinite(v) && v > 0 ? v : PARAMETROS[chave];
+    }
+    const textos = {} as Record<ChaveTexto, string>;
+    for (const chave of Object.keys(TEXTOS) as ChaveTexto[]) {
+      textos[chave] = map.has(chave) ? (map.get(chave) ?? "") : TEXTOS[chave];
+    }
     return {
       modo_piloto: map.get("modo_piloto") !== "false",
       inscricoes_abertas: map.get("inscricoes_abertas") !== "false",
       aviso_global: (map.get("aviso_global") ?? "").trim(),
+      camp_ativo: map.get("camp_ativo") !== "false",
+      numeros,
+      textos,
     };
   },
 );
