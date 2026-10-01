@@ -8,6 +8,7 @@ import {
   getConfigAdmin,
   salvarConfigAdmin,
   type ChaveParametro,
+  type ChaveTexto,
 } from "@/lib/admin.functions";
 
 const DINHEIRO: { chave: ChaveParametro; label: string; hint: string }[] = [
@@ -28,13 +29,23 @@ const DINHEIRO: { chave: ChaveParametro; label: string; hint: string }[] = [
   },
   {
     chave: "anuidade_centavos",
-    label: "Anuidade do clube (sede)",
-    hint: "Cobrada na aprovação do clube.",
+    label: "Anuidade do clube (sede) · à vista",
+    hint: "Aparece na página de aplicação de senseis.",
+  },
+  {
+    chave: "anuidade_mensal_centavos",
+    label: "Anuidade do clube (sede) · por mês",
+    hint: "Opção mensal mostrada ao sensei.",
   },
   {
     chave: "anuidade_unidade_extra_centavos",
-    label: "Anuidade da unidade extra",
+    label: "Unidade extra · à vista",
     hint: "Valor por unidade além da sede.",
+  },
+  {
+    chave: "anuidade_unidade_extra_mensal_centavos",
+    label: "Unidade extra · por mês",
+    hint: "Opção mensal por unidade além da sede.",
   },
 ];
 
@@ -69,6 +80,12 @@ export function AbaConfig() {
 
   const [valores, setValores] = useState<Record<string, string>>({});
   const [aviso, setAviso] = useState("");
+  const [textos, setTextos] = useState<Record<ChaveTexto, string>>({
+    camp_titulo: "",
+    camp_data_local: "",
+    camp_texto: "",
+    camp_link: "",
+  });
 
   useEffect(() => {
     if (!cfg) return;
@@ -77,14 +94,17 @@ export function AbaConfig() {
     for (const { chave } of PRAZOS) inicial[chave] = String(cfg.numeros[chave]);
     setValores(inicial);
     setAviso(cfg.aviso_global);
+    setTextos(cfg.textos);
   }, [cfg]);
 
   const salvar = useMutation({
     mutationFn: (payload: {
       modo_piloto?: boolean;
       inscricoes_abertas?: boolean;
+      camp_ativo?: boolean;
       aviso_global?: string;
       numeros?: Record<string, number>;
+      textos?: Partial<Record<ChaveTexto, string>>;
     }) => salvarFn({ data: payload }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["admin-config"] });
