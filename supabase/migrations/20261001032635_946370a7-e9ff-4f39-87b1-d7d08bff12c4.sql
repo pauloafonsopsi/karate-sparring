@@ -1,0 +1,1 @@
+ALTER TABLE public.senseis RENAME COLUMN subconta_status TO recebedor_status;
