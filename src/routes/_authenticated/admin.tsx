@@ -20,7 +20,7 @@ import { nomeDia } from "@/lib/semana";
 import {
   criarUnidade,
   definirSlugDoClube,
-  definirSubcontaEAnuidade,
+  definirRecebedorEAnuidade,
   listarUnidadesDoClube,
 } from "@/lib/unidades.functions";
 
@@ -68,7 +68,7 @@ type Sensei = {
   onboarding_concluido: boolean;
   slug: string;
   mensalidade_centavos: number | null;
-  subconta_status: string;
+  recebedor_status: string;
   anuidade_status: string;
   link_publico_ativo: boolean | null;
 };
@@ -724,7 +724,7 @@ function RaioDoDojo({ sensei }: { sensei: Sensei }) {
   );
 }
 
-const SUBCONTA = ["pendente", "em_analise", "aprovada", "recusada", "dispensada_piloto"] as const;
+const RECEBEDOR = ["pendente", "em_analise", "aprovada", "recusada", "dispensada_piloto"] as const;
 const ANUIDADE = ["pendente", "paga", "isento_piloto", "estornada"] as const;
 
 function GestaoClube({ sensei }: { sensei: Sensei }) {
@@ -732,7 +732,7 @@ function GestaoClube({ sensei }: { sensei: Sensei }) {
   const listar = useServerFn(listarUnidadesDoClube);
   const criar = useServerFn(criarUnidade);
   const salvarSlug = useServerFn(definirSlugDoClube);
-  const salvarFin = useServerFn(definirSubcontaEAnuidade);
+  const salvarFin = useServerFn(definirRecebedorEAnuidade);
 
   const [slug, setSlug] = useState(sensei.slug);
   const [novaUnidade, setNovaUnidade] = useState("");
@@ -769,7 +769,7 @@ function GestaoClube({ sensei }: { sensei: Sensei }) {
 
   const mFin = useMutation({
     mutationFn: (patch: {
-      subconta_status?: (typeof SUBCONTA)[number];
+      recebedor_status?: (typeof RECEBEDOR)[number];
       anuidade_status?: (typeof ANUIDADE)[number];
     }) => salvarFin({ data: { clube_id: sensei.id, ...patch } }),
     onSuccess: () => {
@@ -811,12 +811,12 @@ function GestaoClube({ sensei }: { sensei: Sensei }) {
       <div>
         <Field label="Conta de recebimento do clube">
           <SelectInput
-            value={sensei.subconta_status}
+            value={sensei.recebedor_status}
             onChange={(e) =>
-              mFin.mutate({ subconta_status: e.target.value as (typeof SUBCONTA)[number] })
+              mFin.mutate({ recebedor_status: e.target.value as (typeof RECEBEDOR)[number] })
             }
           >
-            {SUBCONTA.map((s) => (
+            {RECEBEDOR.map((s) => (
               <option key={s} value={s}>
                 {s.replace(/_/g, " ")}
               </option>
