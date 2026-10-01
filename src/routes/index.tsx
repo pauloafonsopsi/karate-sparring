@@ -112,9 +112,10 @@ function Vitrine() {
       <div className="mx-auto w-full max-w-xl px-5 pt-10 pb-20">
         <header className="mb-10">
           <Wordmark size="lg" />
+          <h1 className="mt-10 text-[11vw] leading-[0.88] sm:text-6xl">Sparring toda semana</h1>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-fg">
-            Treine sparring toda semana no clube licenciado da sua região, suba no ranking e dispute
-            a vaga no Legends Camp.
+            Treine no clube licenciado da sua região, suba no ranking oficial e dispute a
+            convocação para o Legends Camp.
           </p>
           <div className="mt-6 flex flex-wrap gap-5">
             <Link to="/sensei" className="eyebrow hover:text-foreground">
@@ -242,6 +243,48 @@ function Vitrine() {
             </Btn>
           </section>
         )}
+
+        {config?.camp_ativo && config.textos.camp_titulo && (
+          <section className="mt-16 border-2 border-foreground p-6">
+            <p className="eyebrow">O topo do ranking</p>
+            <h2 className="mt-3 text-4xl leading-[0.9]">{config.textos.camp_titulo}</h2>
+            {config.textos.camp_data_local && (
+              <p className="display mt-3 text-sm">{config.textos.camp_data_local}</p>
+            )}
+            {config.textos.camp_texto && (
+              <p className="mt-4 text-sm leading-relaxed text-muted-fg">
+                {config.textos.camp_texto}
+              </p>
+            )}
+            {config.textos.camp_link && (
+              <a
+                href={config.textos.camp_link}
+                target="_blank"
+                rel="noreferrer"
+                className="eyebrow mt-5 inline-block text-foreground underline"
+              >
+                Saiba mais →
+              </a>
+            )}
+          </section>
+        )}
+
+        <section className="mt-16 border-t border-line pt-8">
+          <h2 className="mb-5 text-2xl">Como funciona</h2>
+          <ol className="space-y-4">
+            {[
+              "Escolha o clube licenciado da sua região.",
+              "Cadastre-se pelo link do clube e aguarde a autorização do sensei.",
+              "Treine sparring toda semana e marque presença.",
+              "Suba no ranking e dispute a convocação para o Legends Camp.",
+            ].map((p, i) => (
+              <li key={p} className="flex gap-4">
+                <span className="display w-6 shrink-0 text-lg">{i + 1}</span>
+                <span className="text-sm leading-relaxed text-muted-fg">{p}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
     </main>
   );
