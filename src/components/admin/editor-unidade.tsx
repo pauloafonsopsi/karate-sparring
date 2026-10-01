@@ -114,8 +114,8 @@ export function EditorUnidade({
             >
               <option value="">Não definido</option>
               {DIAS_SEMANA.map((d) => (
-                <option key={d} value={d}>
-                  {nomeDia(d)}
+                <option key={d.valor} value={d.valor}>
+                  {d.nome}
                 </option>
               ))}
             </SelectInput>
