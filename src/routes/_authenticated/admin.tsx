@@ -98,7 +98,7 @@ type Lead = {
   created_at: string | null;
 };
 
-const ABAS = ["Senseis", "Filiações", "Leads", "Config"] as const;
+const ABAS = ["Clubes", "Atletas", "Filiações", "Leads", "Acessos", "Config"] as const;
 
 function dataBr(v: string | null) {
   return v ? new Date(v).toLocaleDateString("pt-BR") : "—";
