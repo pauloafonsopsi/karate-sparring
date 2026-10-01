@@ -107,7 +107,7 @@ function dataBr(v: string | null) {
 function Admin() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [aba, setAba] = useState<(typeof ABAS)[number]>("Senseis");
+  const [aba, setAba] = useState<(typeof ABAS)[number]>("Clubes");
   const { data: acesso } = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso() });
 
   async function sair() {
