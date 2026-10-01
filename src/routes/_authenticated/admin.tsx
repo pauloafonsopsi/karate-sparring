@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Wordmark } from "@/components/brand";
@@ -332,8 +332,10 @@ function PainelSensei({
   const [linkAtivacao, setLinkAtivacao] = useState<string | null>(null);
 
   const convidar = useMutation({
-    mutationFn: (confirmar_vinculo: boolean) =>
-      convidarFn({ data: { sensei_id: sensei.id, confirmar_vinculo } }),
+    mutationFn: (v: { acao: "gerar_link" | "enviar_email"; confirmar_vinculo: boolean }) =>
+      convidarFn({
+        data: { sensei_id: sensei.id, acao: v.acao, confirmar_vinculo: v.confirmar_vinculo },
+      }),
     onSuccess: (r: ResultadoConvite) => {
       setLinkAtivacao(r.link);
       if (r.situacao === "conta_existente") {
@@ -343,9 +345,11 @@ function PainelSensei({
       }
       setContaExistente(false);
       toast.success(
-        r.situacao === "convidado"
-          ? `Convite enviado para ${r.email}. O sensei define a própria senha.`
-          : `Papel de sensei vinculado à conta de ${r.email}.`,
+        r.situacao === "vinculado"
+          ? `Papel de sensei vinculado à conta de ${r.email}.`
+          : r.link
+            ? "Link de acesso gerado. Copie e envie para o sensei."
+            : `Convite enviado para ${r.email}. O sensei define a própria senha.`,
       );
     },
     onError: (e: Error) => toast.error(e.message || "Não foi possível enviar o convite."),
@@ -459,19 +463,32 @@ function PainelSensei({
         <div className="mt-8 space-y-4 border-t border-line pt-6">
           <p className="eyebrow">Acesso do sensei ao painel do dojô</p>
           <p className="text-sm text-muted-fg">
-            O convite vai para <span className="text-foreground">{sensei.email}</span> e o próprio
-            sensei define a senha. Nenhuma senha é alterada por aqui.
+            O acesso é de <span className="text-foreground">{sensei.email}</span> e o próprio sensei
+            define a senha. Nenhuma senha é alterada por aqui.
           </p>
+          <Btn
+            full
+            disabled={
+              convidar.isPending || !["aprovado", "ativo"].includes(sensei.status) || contaExistente
+            }
+            onClick={() => convidar.mutate({ acao: "gerar_link", confirmar_vinculo: false })}
+          >
+            {convidar.isPending ? "Gerando" : "Gerar link de acesso"}
+          </Btn>
           <Btn
             full
             variant="outline"
             disabled={
               convidar.isPending || !["aprovado", "ativo"].includes(sensei.status) || contaExistente
             }
-            onClick={() => convidar.mutate(false)}
+            onClick={() => convidar.mutate({ acao: "enviar_email", confirmar_vinculo: false })}
           >
-            {convidar.isPending ? "Enviando" : "Enviar convite por email"}
+            Enviar por email
           </Btn>
+          <p className="text-xs text-muted-fg">
+            O link é o caminho recomendado: pode ser enviado pelo WhatsApp e não consome a cota de
+            emails do sistema.
+          </p>
           {!["aprovado", "ativo"].includes(sensei.status) && (
             <p className="text-xs text-brand">
               Aprove o sensei antes de enviar o convite de acesso.
@@ -484,7 +501,12 @@ function PainelSensei({
                 sem mexer na senha.
               </p>
               <div className="flex gap-2">
-                <Btn disabled={convidar.isPending} onClick={() => convidar.mutate(true)}>
+                <Btn
+                  disabled={convidar.isPending}
+                  onClick={() =>
+                    convidar.mutate({ acao: "gerar_link", confirmar_vinculo: true })
+                  }
+                >
                   Confirmar vínculo
                 </Btn>
                 <Btn variant="ghost" onClick={() => setContaExistente(false)}>
@@ -494,7 +516,7 @@ function PainelSensei({
             </div>
           )}
           {linkAtivacao && (
-            <Field label="Link de ativação" hint="Use caso o email não chegue.">
+            <Field label="Link de acesso" hint="Envie pelo WhatsApp. Vale uma única vez.">
               <TextInput readOnly value={linkAtivacao} onFocus={(e) => e.target.select()} />
             </Field>
           )}
