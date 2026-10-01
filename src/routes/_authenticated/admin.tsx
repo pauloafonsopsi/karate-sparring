@@ -841,54 +841,6 @@ function AbaLeads() {
   );
 }
 
-/* ---------------- CONFIG ---------------- */
-
-function AbaConfig() {
-  const qc = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["admin-config"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("config").select("chave, valor");
-      if (error) throw error;
-      return new Map((data ?? []).map((r) => [r.chave, r.valor ?? ""]));
-    },
-  });
-
-
-  const set = useMutation({
-    mutationFn: async ({ chave, valor }: { chave: string; valor: string }) => {
-      const { error } = await supabase.from("config").update({ valor }).eq("chave", chave);
-      if (error) throw error;
-    },
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["admin-config"] });
-      await qc.invalidateQueries({ queryKey: ["config"] });
-      toast.success("Configuração atualizada.");
-    },
-    onError: () => toast.error("Não foi possível atualizar."),
-  });
-
-  const toggle = (chave: string, label: string) => {
-    const ativo = data?.get(chave) !== "false";
-    return (
-      <div className="flex items-center justify-between border border-line bg-surface p-4">
-        <span className="text-sm">{label}</span>
-        <button
-          onClick={() => set.mutate({ chave, valor: ativo ? "false" : "true" })}
-          className={`h-7 w-12 border ${ativo ? "border-brand bg-brand" : "border-line"}`}
-        />
-      </div>
-    );
-  };
-
-  return (
-    <div className="max-w-xl space-y-4">
-      {toggle("modo_piloto", "Modo piloto")}
-      {toggle("inscricoes_abertas", "Inscrições abertas")}
-    </div>
-  );
-}
-
 function RaioDoDojo({ sensei }: { sensei: Sensei }) {
   const qc = useQueryClient();
   const salvarRaio = useServerFn(definirRaioDoDojo);
