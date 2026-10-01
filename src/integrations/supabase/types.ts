@@ -18,32 +18,50 @@ export type Database = {
         Row: {
           ate: string | null
           atleta_id: string
+          autorizado_em: string | null
+          autorizado_por: string | null
           created_at: string
           desde: string
           id: string
           obs: string | null
           origem: string
+          recusa_motivo: string | null
           sensei_id: string
+          solicitado_em: string
+          status_autorizacao: string
+          unidade_id: string | null
         }
         Insert: {
           ate?: string | null
           atleta_id: string
+          autorizado_em?: string | null
+          autorizado_por?: string | null
           created_at?: string
           desde?: string
           id?: string
           obs?: string | null
           origem?: string
+          recusa_motivo?: string | null
           sensei_id: string
+          solicitado_em?: string
+          status_autorizacao?: string
+          unidade_id?: string | null
         }
         Update: {
           ate?: string | null
           atleta_id?: string
+          autorizado_em?: string | null
+          autorizado_por?: string | null
           created_at?: string
           desde?: string
           id?: string
           obs?: string | null
           origem?: string
+          recusa_motivo?: string | null
           sensei_id?: string
+          solicitado_em?: string
+          status_autorizacao?: string
+          unidade_id?: string | null
         }
         Relationships: [
           {
@@ -51,6 +69,13 @@ export type Database = {
             columns: ["atleta_id"]
             isOneToOne: false
             referencedRelation: "atletas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atleta_dojos_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "clubes_publicos"
             referencedColumns: ["id"]
           },
           {
@@ -67,17 +92,33 @@ export type Database = {
             referencedRelation: "senseis_publicos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "atleta_dojos_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atleta_dojos_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_publicas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       atletas: {
         Row: {
           aceite_lgpd: boolean
+          aceite_marketing_eventos: boolean
           aceite_ranking: boolean
           aceite_termos: boolean
           aceites_em: string | null
           created_at: string
           data_nascimento: string
           email: string
+          faixa: string | null
           id: string
           nome: string
           pais: string
@@ -86,12 +127,14 @@ export type Database = {
         }
         Insert: {
           aceite_lgpd?: boolean
+          aceite_marketing_eventos?: boolean
           aceite_ranking?: boolean
           aceite_termos?: boolean
           aceites_em?: string | null
           created_at?: string
           data_nascimento: string
           email: string
+          faixa?: string | null
           id: string
           nome: string
           pais?: string
@@ -100,12 +143,14 @@ export type Database = {
         }
         Update: {
           aceite_lgpd?: boolean
+          aceite_marketing_eventos?: boolean
           aceite_ranking?: boolean
           aceite_termos?: boolean
           aceites_em?: string | null
           created_at?: string
           data_nascimento?: string
           email?: string
+          faixa?: string | null
           id?: string
           nome?: string
           pais?: string
@@ -161,6 +206,13 @@ export type Database = {
           sensei_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dojo_alfinete_historico_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "clubes_publicos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dojo_alfinete_historico_sensei_id_fkey"
             columns: ["sensei_id"]
@@ -238,6 +290,13 @@ export type Database = {
             foreignKeyName: "filiacoes_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
+            referencedRelation: "clubes_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filiacoes_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -305,6 +364,13 @@ export type Database = {
             columns: ["atleta_id"]
             isOneToOne: false
             referencedRelation: "atletas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_atletas_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
+            referencedRelation: "clubes_publicos"
             referencedColumns: ["id"]
           },
           {
@@ -390,6 +456,13 @@ export type Database = {
             foreignKeyName: "pagamentos_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
+            referencedRelation: "clubes_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -464,6 +537,13 @@ export type Database = {
             foreignKeyName: "sensei_users_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
+            referencedRelation: "clubes_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensei_users_sensei_id_fkey"
+            columns: ["sensei_id"]
+            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -481,6 +561,8 @@ export type Database = {
           adesao_asaas_id: string | null
           adesao_invoice_url: string | null
           adesao_paga: boolean
+          anuidade_iniciada_em: string | null
+          anuidade_status: string
           asaas_account_id: string | null
           asaas_status: string | null
           asaas_wallet_id: string | null
@@ -501,7 +583,9 @@ export type Database = {
           latitude: number | null
           link_afiliado_avulso: string | null
           link_afiliado_mensal: string | null
+          link_publico_ativo: boolean | null
           longitude: number | null
+          mensalidade_centavos: number | null
           nome: string
           obs: string | null
           onboarding_concluido: boolean
@@ -509,7 +593,9 @@ export type Database = {
           piloto: boolean
           raio_metros: number
           selo_status: string
+          slug: string
           status: string
+          subconta_status: string
           tempo_ensino: string | null
           uf: string
           whatsapp: string
@@ -518,6 +604,8 @@ export type Database = {
           adesao_asaas_id?: string | null
           adesao_invoice_url?: string | null
           adesao_paga?: boolean
+          anuidade_iniciada_em?: string | null
+          anuidade_status?: string
           asaas_account_id?: string | null
           asaas_status?: string | null
           asaas_wallet_id?: string | null
@@ -538,7 +626,9 @@ export type Database = {
           latitude?: number | null
           link_afiliado_avulso?: string | null
           link_afiliado_mensal?: string | null
+          link_publico_ativo?: boolean | null
           longitude?: number | null
+          mensalidade_centavos?: number | null
           nome: string
           obs?: string | null
           onboarding_concluido?: boolean
@@ -546,7 +636,9 @@ export type Database = {
           piloto?: boolean
           raio_metros?: number
           selo_status?: string
+          slug: string
           status?: string
+          subconta_status?: string
           tempo_ensino?: string | null
           uf: string
           whatsapp: string
@@ -555,6 +647,8 @@ export type Database = {
           adesao_asaas_id?: string | null
           adesao_invoice_url?: string | null
           adesao_paga?: boolean
+          anuidade_iniciada_em?: string | null
+          anuidade_status?: string
           asaas_account_id?: string | null
           asaas_status?: string | null
           asaas_wallet_id?: string | null
@@ -575,7 +669,9 @@ export type Database = {
           latitude?: number | null
           link_afiliado_avulso?: string | null
           link_afiliado_mensal?: string | null
+          link_publico_ativo?: boolean | null
           longitude?: number | null
+          mensalidade_centavos?: number | null
           nome?: string
           obs?: string | null
           onboarding_concluido?: boolean
@@ -583,12 +679,93 @@ export type Database = {
           piloto?: boolean
           raio_metros?: number
           selo_status?: string
+          slug?: string
           status?: string
+          subconta_status?: string
           tempo_ensino?: string | null
           uf?: string
           whatsapp?: string
         }
         Relationships: []
+      }
+      unidades: {
+        Row: {
+          ativa: boolean
+          clube_id: string
+          created_at: string
+          dia_aula: number | null
+          duracao_minutos: number
+          endereco: string | null
+          fuso_horario: string
+          horario_aula: string | null
+          id: string
+          instrutor_id: string | null
+          is_sede: boolean
+          latitude: number | null
+          longitude: number | null
+          nome: string
+          raio_metros: number
+          updated_at: string
+        }
+        Insert: {
+          ativa?: boolean
+          clube_id: string
+          created_at?: string
+          dia_aula?: number | null
+          duracao_minutos?: number
+          endereco?: string | null
+          fuso_horario?: string
+          horario_aula?: string | null
+          id?: string
+          instrutor_id?: string | null
+          is_sede?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          nome: string
+          raio_metros?: number
+          updated_at?: string
+        }
+        Update: {
+          ativa?: boolean
+          clube_id?: string
+          created_at?: string
+          dia_aula?: number | null
+          duracao_minutos?: number
+          endereco?: string | null
+          fuso_horario?: string
+          horario_aula?: string | null
+          id?: string
+          instrutor_id?: string | null
+          is_sede?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          nome?: string
+          raio_metros?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unidades_clube_id_fkey"
+            columns: ["clube_id"]
+            isOneToOne: false
+            referencedRelation: "clubes_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_clube_id_fkey"
+            columns: ["clube_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_clube_id_fkey"
+            columns: ["clube_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -646,6 +823,45 @@ export type Database = {
       }
     }
     Views: {
+      clubes_publicos: {
+        Row: {
+          cidade: string | null
+          dojo: string | null
+          foto_url: string | null
+          graduacao: string | null
+          id: string | null
+          mensalidade_centavos: number | null
+          piloto: boolean | null
+          responsavel: string | null
+          slug: string | null
+          uf: string | null
+        }
+        Insert: {
+          cidade?: string | null
+          dojo?: string | null
+          foto_url?: string | null
+          graduacao?: string | null
+          id?: string | null
+          mensalidade_centavos?: number | null
+          piloto?: boolean | null
+          responsavel?: string | null
+          slug?: string | null
+          uf?: string | null
+        }
+        Update: {
+          cidade?: string | null
+          dojo?: string | null
+          foto_url?: string | null
+          graduacao?: string | null
+          id?: string | null
+          mensalidade_centavos?: number | null
+          piloto?: boolean | null
+          responsavel?: string | null
+          slug?: string | null
+          uf?: string | null
+        }
+        Relationships: []
+      }
       senseis_publicos: {
         Row: {
           cidade: string | null
@@ -679,9 +895,46 @@ export type Database = {
         }
         Relationships: []
       }
+      unidades_publicas: {
+        Row: {
+          clube_id: string | null
+          dia_aula: number | null
+          duracao_minutos: number | null
+          endereco: string | null
+          fuso_horario: string | null
+          horario_aula: string | null
+          id: string | null
+          latitude: number | null
+          longitude: number | null
+          nome: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unidades_clube_id_fkey"
+            columns: ["clube_id"]
+            isOneToOne: false
+            referencedRelation: "clubes_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_clube_id_fkey"
+            columns: ["clube_id"]
+            isOneToOne: false
+            referencedRelation: "senseis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unidades_clube_id_fkey"
+            columns: ["clube_id"]
+            isOneToOne: false
+            referencedRelation: "senseis_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      slugificar: { Args: { txt: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "sensei" | "atleta"
