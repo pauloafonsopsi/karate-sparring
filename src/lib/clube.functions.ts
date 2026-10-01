@@ -481,13 +481,15 @@ export const autorizarAtleta = createServerFn({ method: "POST" })
         ativada_em: agora,
         alterada_em: agora,
       };
-      if (fil) {
-        await supabaseAdmin.from("filiacoes").update(campos).eq("id", fil.id);
-      } else {
-        await supabaseAdmin
-          .from("filiacoes")
-          .insert({ tipo: "atleta", atleta_id: v.atleta_id, ...campos });
+      const res = fil
+        ? await supabaseAdmin.from("filiacoes").update(campos).eq("id", fil.id)
+        : await supabaseAdmin
+            .from("filiacoes")
+            .insert({ tipo: "atleta", atleta_id: v.atleta_id, ...campos });
+      if (res.error) {
+        throw new Error("Atleta autorizado, mas não conseguimos ativar a filiação de cortesia.");
       }
+
     }
 
     const { data: perfil } = await supabaseAdmin
