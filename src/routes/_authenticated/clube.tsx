@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { MapaAlfinete } from "@/components/mapa-alfinete";
 import { TrocaArea } from "@/components/troca-area";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuAcesso } from "@/lib/acesso.functions";
+import { siteUrl } from "@/lib/config";
 import {
   atualizarMinhaUnidade,
   autorizarAtleta,
@@ -24,6 +25,10 @@ import { brl } from "@/lib/preco";
 import { DIAS_SEMANA, FUSOS, nomeDia } from "@/lib/semana";
 
 export const Route = createFileRoute("/_authenticated/clube")({
+  beforeLoad: async () => {
+    const acesso = await getMeuAcesso();
+    if (!acesso.sensei && !acesso.admin) throw redirect({ to: acesso.area, replace: true });
+  },
   head: () => ({
     meta: [
       { title: "Meu clube · Karate Legends Sparring" },
@@ -62,7 +67,7 @@ function AreaClube() {
     navigate({ to: "/auth", replace: true });
   }
 
-  const link = clube ? `https://karate-sparring.lovable.app/c/${clube.slug}` : "";
+  const link = clube ? siteUrl(`/c/${clube.slug}`) : "";
 
   return (
     <main className="grain min-h-screen">

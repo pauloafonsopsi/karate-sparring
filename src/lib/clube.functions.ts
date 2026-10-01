@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { SITE_HOST } from "@/lib/config";
+import { FUSOS } from "@/lib/semana";
 import { FILIACAO_LIGA_PADRAO_CENTAVOS } from "@/lib/preco";
 
 /* ============================ Tipos ============================ */
@@ -271,7 +273,7 @@ const unidadeInput = z.object({
   endereco: z.string().trim().max(240).nullable(),
   latitude: z.number().min(-90).max(90).nullable(),
   longitude: z.number().min(-180).max(180).nullable(),
-  fuso_horario: z.string().trim().min(3).max(60),
+  fuso_horario: z.enum(FUSOS),
   dia_aula: z.number().int().min(1).max(7).nullable(),
   horario_aula: z
     .string()
@@ -500,8 +502,8 @@ export const autorizarAtleta = createServerFn({ method: "POST" })
 
     const primeiro = (perfil?.nome ?? "").split(" ")[0] ?? "";
     const mensagem = cortesia
-      ? `Olá ${primeiro}! Sua entrada no ${clube?.dojo ?? "clube"} foi autorizada. Sua filiação à liga é cortesia no período piloto: entre em karate-sparring.lovable.app/atleta para ver seu passaporte e o dia do treino.`
-      : `Olá ${primeiro}! Sua entrada no ${clube?.dojo ?? "clube"} foi autorizada. Conclua sua filiação em karate-sparring.lovable.app/atleta para liberar o passaporte e o ranking.`;
+      ? `Olá ${primeiro}! Sua entrada no ${clube?.dojo ?? "clube"} foi autorizada. Sua filiação à liga é cortesia no período piloto: entre em ${SITE_HOST}/atleta para ver seu passaporte e o dia do treino.`
+      : `Olá ${primeiro}! Sua entrada no ${clube?.dojo ?? "clube"} foi autorizada. Conclua sua filiação em ${SITE_HOST}/atleta para liberar o passaporte e o ranking.`;
 
     return {
       nome: perfil?.nome ?? "",

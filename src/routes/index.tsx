@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { OG_IMAGE } from "@/lib/config";
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
 import { criarLead, getAppConfig } from "@/lib/app.functions";
@@ -28,8 +29,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:image", content: "https://karate-sparring.lovable.app/og.jpg" },
-      { name: "twitter:image", content: "https://karate-sparring.lovable.app/og.jpg" },
+      { property: "og:image", content: OG_IMAGE },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
   }),
   component: Vitrine,

@@ -11,16 +11,14 @@
 
 ## Decisões técnicas
 
-- Pagamentos: nenhum provedor integrado na etapa 1A (Asaas removido). A partir da etapa 4, Pagar.me/Stone API v5 — evita reescrever o fluxo de filiação duas vezes.
-- Tabelas `pagamentos`, `pagamentos_orfaos` e `webhook_log` são histórico arquivado: somente leitura pelo admin via RLS, sem escrita pelo app.
-- Papéis de usuário ficam em `user_roles` + funções `private.has_role` / `private.current_sensei_id` — evita escalonamento de privilégio.
-- Marca renderizada só em `src/components/brand.tsx` (texto), para trocar por imagem em um único lugar.
-
-- Cadastro de atleta usa `email_confirm: true` (confirmação de email desligada) porque o SMTP padrão limita 30 emails/hora sem domínio próprio. Quando houver domínio próprio, reativar a confirmação de email no cadastro de atletas.
-- Acesso de sensei é sempre por convite (`convidarSensei`); nunca definir ou redefinir senha de conta existente pelo painel — evita tomar a conta de um atleta por erro de digitação.
-- Modelo clube → unidades: `senseis` é o clube licenciado; alfinete, raio, fuso e dados da aula ficam em `unidades` (sede criada por trigger), porque a presença da etapa 2 aponta para a unidade.
-- Pagamentos a partir da etapa 4 são Stone/Pagar.me (recebedor por clube + split por valor fixo da filiação da liga); campos do banco usam nome neutro (`recebedor_status`) para não amarrar a um provedor.
-- `senseis.link_publico_ativo` é coluna gerada (`status='ativo' AND (piloto OR recebedor_status='aprovada')`) — nunca mantida por trigger, para não dessincronizar.
-- Sensei edita só a unidade e a mensalidade por server function com lista fechada de campos (`atualizarMinhaUnidade`, `definirMinhaMensalidade`); raio, status, piloto, slug, recebedor e anuidade são do admin.
-- Área do clube é a rota `/clube`; `/admin/dojos` só redireciona.
+- Pagamentos só na etapa 4, via Stone/Pagar.me (recebedor por clube + split de valor fixo da filiação da liga). Campos do banco usam nome neutro (`recebedor_status`).
+- `pagamentos`, `pagamentos_orfaos` e `webhook_log` são histórico arquivado: leitura só pelo admin, sem escrita pelo app.
+- Papéis em `user_roles` + `private.has_role` / `private.current_sensei_id`; checados no `beforeLoad` de `/admin`, `/clube` e `/atleta`, nunca em `useEffect`.
+- Marca só em `src/components/brand.tsx`; endereço público só em `src/lib/config.ts` (`SITE_URL`, `SITE_HOST`, `siteUrl`, `OG_IMAGE`).
+- Modelo clube → unidades: `senseis` é o clube; alfinete, raio, fuso e dados da aula ficam em `unidades` (sede por trigger), porque a presença da etapa 2 aponta para a unidade. Área do clube é `/clube`; `/admin/dojos` só redireciona.
+- `senseis.link_publico_ativo` é coluna gerada (`status='ativo' AND (piloto OR recebedor_status='aprovada')`), nunca trigger.
+- Edições por server function com lista fechada de campos: `atualizarMinhaUnidade`, `definirMinhaMensalidade` (sensei) e `atualizarMeuPerfil` (atleta: nome, whatsapp, faixa, marketing — sem policy de UPDATE em `atletas`). Raio, status, piloto, slug, recebedor e anuidade são do admin.
+- Convite de sensei: padrão é gerar link (`generateLink` invite) para enviar pelo WhatsApp, pois o SMTP sem domínio próprio limita 30 emails/hora; email é botão separado. Email com conta existente só recebe vínculo de papel após confirmação do admin, nunca link de entrada.
+- Cadastro de atleta usa `email_confirm: true` pelo mesmo limite de SMTP; reativar a confirmação quando houver domínio próprio.
 - No piloto, autorizar atleta cria filiação `provedor='piloto_cortesia'`; fora do piloto a autorização só libera o pagamento.
+

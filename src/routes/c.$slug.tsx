@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { OG_IMAGE } from "@/lib/config";
 import { Wordmark } from "@/components/brand";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,8 +30,8 @@ export const Route = createFileRoute("/c/$slug")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
-        { property: "og:image", content: "https://karate-sparring.lovable.app/og.jpg" },
-        { name: "twitter:image", content: "https://karate-sparring.lovable.app/og.jpg" },
+        { property: "og:image", content: OG_IMAGE },
+        { name: "twitter:image", content: OG_IMAGE },
       ],
     };
   },
