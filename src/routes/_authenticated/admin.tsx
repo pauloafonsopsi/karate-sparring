@@ -371,9 +371,57 @@ function PainelSensei({
   onClose: () => void;
   onSave: (patch: Partial<Sensei>) => void;
 }) {
+  const qc = useQueryClient();
+  const salvarClubeFn = useServerFn(atualizarClubeAdmin);
   const [f, setF] = useState({
+    dojo: sensei.dojo,
+    nome: sensei.nome,
+    email: sensei.email,
+    whatsapp: sensei.whatsapp,
+    cidade: sensei.cidade,
+    uf: sensei.uf,
+    graduacao: sensei.graduacao ?? "",
+    tempo_ensino: sensei.tempo_ensino ?? "",
+    instagram: sensei.instagram ?? "",
+    mensalidade: sensei.mensalidade_centavos
+      ? (sensei.mensalidade_centavos / 100).toFixed(2).replace(".", ",")
+      : "",
     foto_url: sensei.foto_url ?? "",
     obs: sensei.obs ?? "",
+  });
+
+  const salvarClube = useMutation({
+    mutationFn: () => {
+      const bruto = f.mensalidade.trim();
+      let centavos: number | null = null;
+      if (bruto) {
+        const n = Number(bruto.replace(/\./g, "").replace(",", "."));
+        if (!Number.isFinite(n)) throw new Error("Mensalidade inválida.");
+        centavos = Math.round(n * 100);
+      }
+      return salvarClubeFn({
+        data: {
+          clube_id: sensei.id,
+          dojo: f.dojo.trim(),
+          nome: f.nome.trim(),
+          email: f.email.trim(),
+          whatsapp: f.whatsapp.trim(),
+          cidade: f.cidade.trim(),
+          uf: f.uf,
+          graduacao: f.graduacao.trim() || null,
+          tempo_ensino: f.tempo_ensino.trim() || null,
+          instagram: f.instagram.trim() || null,
+          mensalidade_centavos: centavos,
+          foto_url: f.foto_url.trim() || null,
+          obs: f.obs.trim() || null,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admin-senseis"] });
+      toast.success("Dados do clube salvos.");
+    },
+    onError: (e: Error) => toast.error(e.message || "Não conseguimos salvar o clube."),
   });
 
   const convidarFn = useServerFn(convidarSensei);
