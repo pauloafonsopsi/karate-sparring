@@ -402,6 +402,9 @@ function PainelSensei({
 
         <RaioDoDojo sensei={sensei} />
 
+        <GestaoClube sensei={sensei} />
+
+
         <div className="mt-6 space-y-4">
           <Field label="Foto (URL)">
             <TextInput
