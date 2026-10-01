@@ -145,9 +145,11 @@ function Admin() {
         </nav>
 
         <div className="mt-8">
-          {aba === "Senseis" && <AbaSenseis />}
+          {aba === "Clubes" && <AbaSenseis />}
+          {aba === "Atletas" && <AbaAtletas />}
           {aba === "Filiações" && <AbaFiliacoes />}
           {aba === "Leads" && <AbaLeads />}
+          {aba === "Acessos" && <AbaAcessos />}
           {aba === "Config" && <AbaConfig />}
         </div>
       </div>
