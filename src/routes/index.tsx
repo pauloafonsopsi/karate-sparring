@@ -383,16 +383,17 @@ function Camp({ config }: { config: Config }) {
 /* ---------------------------------------------------------------- Vitrine */
 
 function Vitrine({
-  clubes,
+  clubes: clubesProp,
   carregando,
   inscricoesAbertas,
 }: {
-  clubes: ClubeDaVitrine[];
+  clubes?: ClubeDaVitrine[] | null;
   carregando: boolean;
   inscricoesAbertas: boolean;
 }) {
   const navigate = useNavigate();
   const [uf, setUf] = useState("");
+  const clubes = Array.isArray(clubesProp) ? clubesProp : [];
   const ufsDisponiveis = [...new Set(clubes.map((c) => c.uf))].sort();
   const filtrados = uf ? clubes.filter((c) => c.uf === uf) : clubes;
   const vazio = !carregando && filtrados.length === 0;
