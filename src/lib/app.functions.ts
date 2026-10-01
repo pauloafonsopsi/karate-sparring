@@ -68,9 +68,37 @@ export const criarAplicacaoSensei = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existente) throw new Error("Já existe uma aplicação com este email.");
 
+    const base =
+      data.dojo
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60) || "clube";
+
+    let slug = base;
+    for (let i = 0; i < 12; i++) {
+      const { data: colisao } = await supabaseAdmin
+        .from("senseis")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (!colisao) break;
+      slug =
+        i === 0
+          ? `${base}-${data.cidade
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")}`
+          : `${base}-${i + 1}`;
+    }
+
     const { error } = await supabaseAdmin.from("senseis").insert({
       nome: data.nome,
       dojo: data.dojo,
+      slug,
       cidade: data.cidade,
       uf: data.uf.toUpperCase(),
       whatsapp: data.whatsapp,
@@ -80,6 +108,7 @@ export const criarAplicacaoSensei = createServerFn({ method: "POST" })
       instagram: data.instagram?.trim() || null,
       status: "aplicou",
     });
+
     if (error) {
       throw new Error(
         error.code === "23505"

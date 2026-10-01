@@ -180,14 +180,26 @@ export const trocarDojoDoAtleta = createServerFn({ method: "POST" })
       if (fecha.error) throw new Error("Não conseguimos encerrar o vínculo atual.");
     }
 
+    const { data: sede } = await supabaseAdmin
+      .from("unidades")
+      .select("id")
+      .eq("clube_id", data.sensei_id)
+      .eq("is_sede", true)
+      .maybeSingle();
+
     const novo = await supabaseAdmin.from("atleta_dojos").insert({
       atleta_id: data.atleta_id,
       sensei_id: data.sensei_id,
+      unidade_id: sede?.id ?? null,
       desde: vigencia,
       origem: "troca_admin",
+      status_autorizacao: "autorizado",
+      autorizado_em: new Date().toISOString(),
+      autorizado_por: context.userId,
       obs: data.obs?.trim() || null,
     });
     if (novo.error) throw new Error("Não conseguimos registrar o novo dojô.");
+
 
     await supabaseAdmin
       .from("filiacoes")

@@ -2,12 +2,36 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { FAIXAS } from "@/lib/faixas";
 
 export type MinhaConta = {
   nome: string;
   email: string;
   whatsapp: string;
-  dojo: { nome: string; sensei: string; cidade: string; uf: string } | null;
+  faixa: string | null;
+  clube: {
+    id: string;
+    slug: string;
+    nome: string;
+    responsavel: string;
+    cidade: string;
+    uf: string;
+    piloto: boolean;
+    whatsapp_responsavel: string;
+  } | null;
+  unidade: {
+    nome: string;
+    endereco: string | null;
+    dia_aula: number | null;
+    horario_aula: string | null;
+    duracao_minutos: number;
+  } | null;
+  vinculo: {
+    id: string;
+    status_autorizacao: string;
+    solicitado_em: string;
+    recusa_motivo: string | null;
+  } | null;
   filiacao: { status: string; provedor: string; ativada_em: string | null } | null;
 };
 
@@ -18,11 +42,13 @@ const contaInput = z
     email: z.string().trim().email().max(160),
     email_confirmacao: z.string().trim().email().max(160),
     data_nascimento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    faixa: z.enum(FAIXAS),
     senha: z.string().min(8).max(72),
-    sensei_id: z.string().uuid(),
+    unidade_id: z.string().uuid(),
     aceite_termos: z.literal(true),
     aceite_lgpd: z.literal(true),
     aceite_ranking: z.literal(true),
+    aceite_marketing_eventos: z.boolean().optional().default(false),
     /** Campo oculto anti-robô: precisa chegar vazio. */
     isca: z.string().max(200).optional().default(""),
     /** Milissegundos que o formulário ficou aberto. */
@@ -61,8 +87,12 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const email = data.email.toLowerCase();
 
-    const [{ data: dojo }, { data: cfg }] = await Promise.all([
-      supabaseAdmin.from("senseis").select("id, status, piloto").eq("id", data.sensei_id).maybeSingle(),
+    const [{ data: unidade }, { data: cfg }] = await Promise.all([
+      supabaseAdmin
+        .from("unidades")
+        .select("id, clube_id, ativa")
+        .eq("id", data.unidade_id)
+        .maybeSingle(),
       supabaseAdmin.from("config").select("chave, valor"),
     ]);
 
@@ -70,11 +100,21 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
     if (valor("inscricoes_abertas") === "false") {
       throw new Error("As inscrições da liga estão fechadas neste momento.");
     }
-    if (!dojo || dojo.status !== "ativo") {
-      throw new Error("Este dojô não está mais aberto para inscrições.");
+    if (!unidade || !unidade.ativa) {
+      throw new Error("Esta unidade não está aberta para novos atletas.");
     }
-    if (valor("modo_piloto") === "true" && !dojo.piloto) {
-      throw new Error("Este dojô ainda não está participando do piloto da liga.");
+
+    const { data: clube } = await supabaseAdmin
+      .from("senseis")
+      .select("id, piloto, link_publico_ativo")
+      .eq("id", unidade.clube_id)
+      .maybeSingle();
+
+    if (!clube || !clube.link_publico_ativo) {
+      throw new Error("Este clube não está aberto para novos atletas.");
+    }
+    if (valor("modo_piloto") === "true" && !clube.piloto) {
+      throw new Error("Este clube ainda não está participando do piloto da liga.");
     }
 
     const { data: jaExiste } = await supabaseAdmin
@@ -109,9 +149,11 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
       email,
       whatsapp: data.whatsapp,
       data_nascimento: data.data_nascimento,
+      faixa: data.faixa,
       aceite_termos: true,
       aceite_lgpd: true,
       aceite_ranking: true,
+      aceite_marketing_eventos: data.aceite_marketing_eventos,
       aceites_em: new Date().toISOString(),
     });
     if (perfil.error) {
@@ -124,10 +166,13 @@ export const criarContaAtleta = createServerFn({ method: "POST" })
       { onConflict: "user_id,role" },
     );
 
+    // Pedido de entrada no clube: fica pendente até o sensei autorizar.
     await supabaseAdmin.from("atleta_dojos").insert({
       atleta_id: userId,
-      sensei_id: data.sensei_id,
+      sensei_id: unidade.clube_id,
+      unidade_id: unidade.id,
       origem: "cadastro",
+      status_autorizacao: "pendente",
     });
 
     // Contato de marketing com o mesmo email passa a apontar para a conta.
@@ -145,27 +190,59 @@ export const getMinhaConta = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<MinhaConta | null> => {
     const { data: perfil } = await context.supabase
       .from("atletas")
-      .select("nome, email, whatsapp")
+      .select("nome, email, whatsapp, faixa")
       .eq("id", context.userId)
       .maybeSingle();
     if (!perfil) return null;
 
     const { data: vinculo } = await context.supabase
       .from("atleta_dojos")
-      .select("sensei_id")
+      .select("id, sensei_id, unidade_id, status_autorizacao, solicitado_em, recusa_motivo")
       .eq("atleta_id", context.userId)
       .is("ate", null)
       .maybeSingle();
 
-    let dojo: MinhaConta["dojo"] = null;
+    let clube: MinhaConta["clube"] = null;
+    let unidade: MinhaConta["unidade"] = null;
+
     if (vinculo?.sensei_id) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: s } = await supabaseAdmin
-        .from("senseis")
-        .select("nome, dojo, cidade, uf")
-        .eq("id", vinculo.sensei_id)
-        .maybeSingle();
-      if (s) dojo = { nome: s.dojo, sensei: s.nome, cidade: s.cidade, uf: s.uf };
+      const [{ data: s }, { data: u }] = await Promise.all([
+        supabaseAdmin
+          .from("senseis")
+          .select("id, slug, nome, dojo, cidade, uf, piloto, whatsapp")
+          .eq("id", vinculo.sensei_id)
+          .maybeSingle(),
+        vinculo.unidade_id
+          ? supabaseAdmin
+              .from("unidades")
+              .select("nome, endereco, dia_aula, horario_aula, duracao_minutos")
+              .eq("id", vinculo.unidade_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+
+      if (s) {
+        clube = {
+          id: s.id,
+          slug: s.slug,
+          nome: s.dojo,
+          responsavel: s.nome,
+          cidade: s.cidade,
+          uf: s.uf,
+          piloto: s.piloto,
+          whatsapp_responsavel: s.whatsapp,
+        };
+      }
+      if (u) {
+        unidade = {
+          nome: u.nome,
+          endereco: u.endereco,
+          dia_aula: u.dia_aula,
+          horario_aula: u.horario_aula,
+          duracao_minutos: u.duracao_minutos,
+        };
+      }
     }
 
     const { data: fil } = await context.supabase
@@ -181,7 +258,83 @@ export const getMinhaConta = createServerFn({ method: "GET" })
       nome: perfil.nome,
       email: perfil.email,
       whatsapp: perfil.whatsapp,
-      dojo,
+      faixa: perfil.faixa,
+      clube,
+      unidade,
+      vinculo: vinculo
+        ? {
+            id: vinculo.id,
+            status_autorizacao: vinculo.status_autorizacao,
+            solicitado_em: vinculo.solicitado_em,
+            recusa_motivo: vinculo.recusa_motivo,
+          }
+        : null,
       filiacao: fil ?? null,
     };
+  });
+
+/** Enquanto o pedido está pendente, o atleta pode desistir e pedir entrada em outro clube. */
+export const cancelarMeuPedido = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ ok: true }> => {
+    const { data: vinculo } = await context.supabase
+      .from("atleta_dojos")
+      .select("id, status_autorizacao")
+      .eq("atleta_id", context.userId)
+      .is("ate", null)
+      .maybeSingle();
+
+    if (!vinculo) throw new Error("Você não tem pedido em aberto.");
+    if (vinculo.status_autorizacao !== "pendente") {
+      throw new Error("Seu pedido já foi decidido pelo clube. Fale com a liga para trocar.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("atleta_dojos")
+      .update({ ate: new Date().toISOString().slice(0, 10) })
+      .eq("id", vinculo.id);
+    if (error) throw new Error("Não conseguimos cancelar o pedido agora.");
+    return { ok: true };
+  });
+
+/** Pedido de entrada em um clube para quem já tem conta e está sem vínculo aberto. */
+export const pedirEntradaNoClube = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ unidade_id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { data: aberto } = await context.supabase
+      .from("atleta_dojos")
+      .select("id")
+      .eq("atleta_id", context.userId)
+      .is("ate", null)
+      .maybeSingle();
+    if (aberto) {
+      throw new Error("Você já tem um pedido ou vínculo em aberto. Cancele antes de pedir outro.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: unidade } = await supabaseAdmin
+      .from("unidades")
+      .select("id, clube_id, ativa")
+      .eq("id", data.unidade_id)
+      .maybeSingle();
+    if (!unidade?.ativa) throw new Error("Esta unidade não está aberta para novos atletas.");
+
+    const { data: clube } = await supabaseAdmin
+      .from("senseis")
+      .select("link_publico_ativo")
+      .eq("id", unidade.clube_id)
+      .maybeSingle();
+    if (!clube?.link_publico_ativo) throw new Error("Este clube não está aberto para novos atletas.");
+
+    const { error } = await supabaseAdmin.from("atleta_dojos").insert({
+      atleta_id: context.userId,
+      sensei_id: unidade.clube_id,
+      unidade_id: unidade.id,
+      origem: "pedido",
+      status_autorizacao: "pendente",
+    });
+    if (error) throw new Error("Não conseguimos registrar seu pedido agora.");
+    return { ok: true };
   });
