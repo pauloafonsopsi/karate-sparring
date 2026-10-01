@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import auraAsset from "@/assets/aura.webp.asset.json";
 import campAsset from "@/assets/camp.webp.asset.json";
+import chuteAsset from "@/assets/chute.webp";
 import heroDesktopAsset from "@/assets/hero-desktop.webp.asset.json";
 import heroMobileAsset from "@/assets/hero-mobile.webp.asset.json";
 import rotinaAsset from "@/assets/rotina.webp.asset.json";
@@ -468,7 +469,20 @@ function EstadoVazio({ uf }: { uf: string }) {
           <ListaEspera ufInicial={uf} />
         </div>
       </div>
-      <div className="flex flex-col justify-between bg-surface p-6 md:p-10">
+      <div className="relative isolate flex flex-col justify-between bg-surface p-6 md:p-10">
+        <img
+          src={chuteAsset}
+          alt="Sparring de karatê em treino noturno"
+          loading="lazy"
+          className="absolute inset-0 -z-10 h-full w-full object-cover object-top opacity-45"
+        />
+        <div
+          className="absolute inset-0 -z-10"
+          style={{
+            backgroundImage:
+              "linear-gradient(to bottom, color-mix(in oklab, var(--surface) 55%, transparent), var(--surface) 92%)",
+          }}
+        />
         <div>
           <p className="eyebrow">Para senseis</p>
           <h3 className="mt-3 text-3xl leading-[0.9]">
@@ -659,7 +673,7 @@ function Faq({ filiacao }: { filiacao: number }) {
     ["Qual a idade mínima?", "18 anos. A liga é exclusiva para adultos."],
     [
       "Qual faixa é exigida?",
-      "O sensei do clube avalia se você tem a base técnica e o controle necessários para o sparring com segurança.",
+      "Nenhuma. Qualquer graduação pode participar, da branca à preta.",
     ],
     [
       "Como chego ao Legends Camp?",
