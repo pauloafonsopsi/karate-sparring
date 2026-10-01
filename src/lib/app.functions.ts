@@ -3,6 +3,17 @@ import { z } from "zod";
 
 import { PARAMETROS, TEXTOS, type ChaveParametro, type ChaveTexto } from "@/lib/admin.functions";
 
+export type PublicSensei = {
+  id: string;
+  nome: string;
+  dojo: string;
+  cidade: string;
+  uf: string;
+  graduacao: string | null;
+  foto_url: string | null;
+  piloto: boolean;
+};
+
 export type AppConfig = {
   modo_piloto: boolean;
   inscricoes_abertas: boolean;
