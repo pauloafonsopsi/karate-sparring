@@ -40,12 +40,12 @@ function ResetPassword() {
   }, []);
 
   async function salvar() {
-    if (senha.length < 8) return toast.error("A senha precisa ter ao menos 8 caracteres.");
-    if (senha !== senha2) return toast.error("As senhas não conferem.");
+    if (senha.length < 8) { toast.error("A senha precisa ter ao menos 8 caracteres."); return; }
+    if (senha !== senha2) { toast.error("As senhas não conferem."); return; }
     setSalvando(true);
     const { error } = await supabase.auth.updateUser({ password: senha });
     setSalvando(false);
-    if (error) return toast.error("Não conseguimos salvar. Peça um novo link.");
+    if (error) { toast.error("Não conseguimos salvar. Peça um novo link."); return; }
     toast.success("Senha atualizada.");
     navigate({ to: "/", replace: true });
   }
