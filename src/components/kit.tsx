@@ -15,7 +15,7 @@ export const Btn = forwardRef<
     className={cn(
       "inline-flex min-h-13 items-center justify-center px-6 text-sm font-semibold tracking-[0.14em] uppercase transition-none select-none",
       "disabled:cursor-not-allowed disabled:opacity-40",
-      variant === "primary" && "bg-brand text-foreground hover:bg-brand/85",
+      variant === "primary" && "bg-brand text-background hover:bg-gold-soft",
       variant === "outline" &&
         "border border-line bg-transparent text-foreground hover:border-foreground/40",
       variant === "ghost" && "text-muted-fg hover:text-foreground",

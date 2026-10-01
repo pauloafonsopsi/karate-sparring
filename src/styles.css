@@ -28,24 +28,29 @@
   --color-card-foreground: var(--foreground);
   --color-popover: var(--card);
   --color-popover-foreground: var(--foreground);
-  --color-primary: var(--accent-red);
-  --color-primary-foreground: var(--foreground);
+  --color-primary: var(--gold);
+  --color-primary-foreground: var(--background);
   --color-secondary: var(--surface-2);
   --color-secondary-foreground: var(--foreground);
   --color-muted: var(--surface-2);
   --color-muted-foreground: var(--muted-text);
   --color-accent: var(--surface-2);
   --color-accent-foreground: var(--foreground);
-  --color-destructive: var(--accent-red);
+  --color-destructive: var(--danger);
   --color-destructive-foreground: var(--foreground);
   --color-border: var(--line);
   --color-input: var(--line);
-  --color-ring: var(--accent-red);
+  --color-ring: var(--gold);
   --color-ring-offset-background: var(--background);
 
   --color-surface: var(--card);
   --color-line: var(--line);
-  --color-brand: var(--accent-red);
+  --color-brand: var(--gold);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-marsala: var(--marsala);
+  --color-marsala-deep: var(--marsala-deep);
+  --color-danger: var(--danger);
   --color-muted-fg: var(--muted-text);
 }
 
@@ -56,8 +61,32 @@
   --surface-2: oklch(0.245 0.005 286);
   --foreground: oklch(0.955 0.008 90);
   --muted-text: oklch(0.618 0.009 90);
-  --accent-red: oklch(0.502 0.212 25.5);
+  /* Karate Legends: dourado = ação (1 por tela); marsala = profundidade, nunca texto */
+  --gold: oklch(0.72 0.09 80); /* ~#C5A059 */
+  --gold-soft: oklch(0.82 0.06 85);
+  --marsala: oklch(0.26 0.07 12); /* ~#3A121A */
+  --marsala-deep: oklch(0.2 0.055 12); /* ~#2A0D13 */
+  --danger: oklch(0.502 0.212 25.5); /* vermelho só para erro */
   --line: oklch(0.276 0.007 286);
+  --glow-gold: radial-gradient(60% 50% at 80% 10%, color-mix(in oklab, var(--gold) 22%, transparent), transparent 70%);
+  --glow-marsala: radial-gradient(70% 60% at 10% 90%, color-mix(in oklab, var(--marsala) 85%, transparent), transparent 70%);
+  --fade-bottom: linear-gradient(to bottom, transparent 40%, var(--background));
+  --fade-left: linear-gradient(to right, var(--background) 8%, color-mix(in oklab, var(--background) 70%, transparent) 40%, transparent 70%);
+  --gold-line: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+@utility glow-arena {
+  background-image: var(--glow-gold), var(--glow-marsala);
+}
+@utility gold-text {
+  background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility gold-rule {
+  height: 1px;
+  background: var(--gold-line);
 }
 
 @layer base {
@@ -87,8 +116,8 @@
   }
 
   ::selection {
-    background: var(--accent-red);
-    color: var(--foreground);
+    background: var(--gold);
+    color: var(--background);
   }
 }
 
