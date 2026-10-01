@@ -9,7 +9,8 @@ export type MeuAcesso = {
   atleta: boolean;
   sensei_id: string | null;
   /** Área inicial conforme o papel de maior nível. */
-  area: "/admin" | "/admin/dojos" | "/atleta";
+  area: "/admin" | "/clube" | "/atleta";
+
 };
 
 export const getMeuAcesso = createServerFn({ method: "GET" })
