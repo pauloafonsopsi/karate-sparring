@@ -349,6 +349,8 @@ function AbaSenseis() {
         </table>
       </div>
 
+      {novo && <NovoClube onClose={() => setNovo(false)} />}
+
       {aberto && (
         <PainelSensei
           sensei={aberto}
