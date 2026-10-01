@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConfirmadoRouteImport } from './routes/confirmado'
 import { Route as MinhaAdesaoRouteImport } from './routes/minha-adesao'
 import { Route as RankingRouteImport } from './routes/ranking'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SenseiRouteImport } from './routes/sensei'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAtletaRouteImport } from './routes/_authenticated/atleta'
@@ -57,6 +58,11 @@ const RankingRoute = RankingRouteImport.update({
   path: '/ranking',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SenseiRoute = SenseiRouteImport.update({
   id: '/sensei',
   path: '/sensei',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/confirmado': typeof ConfirmadoRoute
   '/minha-adesao': typeof MinhaAdesaoRoute
   '/ranking': typeof RankingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/atleta': typeof AuthenticatedAtletaRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/confirmado': typeof ConfirmadoRoute
   '/minha-adesao': typeof MinhaAdesaoRoute
   '/ranking': typeof RankingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sensei': typeof SenseiRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/atleta': typeof AuthenticatedAtletaRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/confirmado': typeof ConfirmadoRoute
   '/minha-adesao': typeof MinhaAdesaoRoute
   '/ranking': typeof RankingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sensei': typeof SenseiRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/atleta': typeof AuthenticatedAtletaRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/confirmado'
     | '/minha-adesao'
     | '/ranking'
+    | '/reset-password'
     | '/sensei'
     | '/admin'
     | '/atleta'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/confirmado'
     | '/minha-adesao'
     | '/ranking'
+    | '/reset-password'
     | '/sensei'
     | '/admin'
     | '/atleta'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/confirmado'
     | '/minha-adesao'
     | '/ranking'
+    | '/reset-password'
     | '/sensei'
     | '/_authenticated/admin'
     | '/_authenticated/atleta'
@@ -186,6 +198,7 @@ export interface RootRouteChildren {
   ConfirmadoRoute: typeof ConfirmadoRoute
   MinhaAdesaoRoute: typeof MinhaAdesaoRoute
   RankingRoute: typeof RankingRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SenseiRoute: typeof SenseiRoute
   CSlugRoute: typeof CSlugRoute
 }
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sensei': {
@@ -311,6 +331,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfirmadoRoute: ConfirmadoRoute,
   MinhaAdesaoRoute: MinhaAdesaoRoute,
   RankingRoute: RankingRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SenseiRoute: SenseiRoute,
   CSlugRoute: CSlugRoute,
 }
