@@ -75,13 +75,6 @@ export type Database = {
             foreignKeyName: "atleta_dojos_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "atleta_dojos_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -97,13 +90,6 @@ export type Database = {
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "unidades"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "atleta_dojos_unidade_id_fkey"
-            columns: ["unidade_id"]
-            isOneToOne: false
-            referencedRelation: "unidades_publicas"
             referencedColumns: ["id"]
           },
         ]
@@ -210,13 +196,6 @@ export type Database = {
             foreignKeyName: "dojo_alfinete_historico_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "dojo_alfinete_historico_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -290,13 +269,6 @@ export type Database = {
             foreignKeyName: "filiacoes_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "filiacoes_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -364,13 +336,6 @@ export type Database = {
             columns: ["atleta_id"]
             isOneToOne: false
             referencedRelation: "atletas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leads_atletas_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
-            referencedRelation: "clubes_publicos"
             referencedColumns: ["id"]
           },
           {
@@ -456,13 +421,6 @@ export type Database = {
             foreignKeyName: "pagamentos_sensei_id_fkey"
             columns: ["sensei_id"]
             isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagamentos_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -533,13 +491,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "sensei_users_sensei_id_fkey"
-            columns: ["sensei_id"]
-            isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "sensei_users_sensei_id_fkey"
             columns: ["sensei_id"]
@@ -748,13 +699,6 @@ export type Database = {
             foreignKeyName: "unidades_clube_id_fkey"
             columns: ["clube_id"]
             isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "unidades_clube_id_fkey"
-            columns: ["clube_id"]
-            isOneToOne: false
             referencedRelation: "senseis"
             referencedColumns: ["id"]
           },
@@ -823,45 +767,6 @@ export type Database = {
       }
     }
     Views: {
-      clubes_publicos: {
-        Row: {
-          cidade: string | null
-          dojo: string | null
-          foto_url: string | null
-          graduacao: string | null
-          id: string | null
-          mensalidade_centavos: number | null
-          piloto: boolean | null
-          responsavel: string | null
-          slug: string | null
-          uf: string | null
-        }
-        Insert: {
-          cidade?: string | null
-          dojo?: string | null
-          foto_url?: string | null
-          graduacao?: string | null
-          id?: string | null
-          mensalidade_centavos?: number | null
-          piloto?: boolean | null
-          responsavel?: string | null
-          slug?: string | null
-          uf?: string | null
-        }
-        Update: {
-          cidade?: string | null
-          dojo?: string | null
-          foto_url?: string | null
-          graduacao?: string | null
-          id?: string | null
-          mensalidade_centavos?: number | null
-          piloto?: boolean | null
-          responsavel?: string | null
-          slug?: string | null
-          uf?: string | null
-        }
-        Relationships: []
-      }
       senseis_publicos: {
         Row: {
           cidade: string | null
@@ -894,43 +799,6 @@ export type Database = {
           uf?: string | null
         }
         Relationships: []
-      }
-      unidades_publicas: {
-        Row: {
-          clube_id: string | null
-          dia_aula: number | null
-          duracao_minutos: number | null
-          endereco: string | null
-          fuso_horario: string | null
-          horario_aula: string | null
-          id: string | null
-          latitude: number | null
-          longitude: number | null
-          nome: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "unidades_clube_id_fkey"
-            columns: ["clube_id"]
-            isOneToOne: false
-            referencedRelation: "clubes_publicos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "unidades_clube_id_fkey"
-            columns: ["clube_id"]
-            isOneToOne: false
-            referencedRelation: "senseis"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "unidades_clube_id_fkey"
-            columns: ["clube_id"]
-            isOneToOne: false
-            referencedRelation: "senseis_publicos"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Functions: {
