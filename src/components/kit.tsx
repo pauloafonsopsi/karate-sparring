@@ -72,19 +72,19 @@ export function Check({
   children: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="flex w-full items-start gap-3 border border-line bg-surface p-4 text-left"
-    >
-      <span
+    <div className="flex w-full items-start gap-3 border border-line bg-surface p-4 text-left">
+      <button
+        type="button"
+        aria-label={checked ? "Desmarcar" : "Marcar"}
+        aria-pressed={checked}
+        onClick={() => onChange(!checked)}
         className={cn(
           "mt-0.5 h-5 w-5 shrink-0 border",
           checked ? "border-brand bg-brand" : "border-line bg-background",
         )}
       />
       <span className="text-sm leading-snug text-muted-fg">{children}</span>
-    </button>
+    </div>
   );
 }
 

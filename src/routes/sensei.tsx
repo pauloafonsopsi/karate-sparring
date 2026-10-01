@@ -262,10 +262,14 @@ function PaginaSensei() {
                 />
               </Field>
               <Check checked={aceite} onChange={setAceite}>
-                Autorizo o contato e o uso dos meus dados conforme a{" "}
-                <a href="#" className="text-foreground underline">
+                Li e aceito os{" "}
+                <Link to="/termos" className="text-foreground underline">
+                  Termos de Participação
+                </Link>{" "}
+                e a{" "}
+                <Link to="/privacidade" className="text-foreground underline">
                   Política de Privacidade
-                </a>
+                </Link>
                 .
               </Check>
               <Btn full disabled={enviando} onClick={enviar}>
@@ -275,9 +279,15 @@ function PaginaSensei() {
           )}
         </section>
 
-        <footer className="mt-16 border-t border-line pt-6">
+        <footer className="mt-16 flex flex-wrap gap-x-6 gap-y-3 border-t border-line pt-6">
           <Link to="/" className="eyebrow hover:text-foreground">
             ← Sou atleta
+          </Link>
+          <Link to="/termos" className="eyebrow hover:text-foreground">
+            Termos
+          </Link>
+          <Link to="/privacidade" className="eyebrow hover:text-foreground">
+            Privacidade
           </Link>
         </footer>
       </div>

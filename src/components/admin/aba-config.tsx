@@ -60,8 +60,10 @@ const PRAZOS: { chave: ChaveParametro; label: string; hint: string }[] = [
     label: "Espera após recusa do clube (dias)",
     hint: "Tempo até o atleta poder pedir de novo ao mesmo clube.",
   },
-  { chave: "pontos_presenca", label: "Ranking: pontos por presença", hint: "Cada treino semanal confirmado." },
-  { chave: "pontos_sequencia", label: "Ranking: bônus de 4 semanas seguidas", hint: "Somado a cada 4 semanas sem falta." },
+  { chave: "pontos_presenca", label: "Ranking: pontos por Treinou", hint: "Treino semanal concluído." },
+  { chave: "pontos_assistiu", label: "Ranking: pontos por Assistiu", hint: "Presente sem treinar ou sem completar; mantém a constância." },
+  { chave: "pontos_sequencia", label: "Ranking: bônus de constância", hint: "Somado ao completar o ciclo sem falta." },
+  { chave: "semanas_constancia", label: "Ranking: semanas por ciclo de constância", hint: "Quantidade de semanas seguidas necessária para o bônus." },
   { chave: "pontos_curso", label: "Ranking: pontos por curso concluído", hint: "Trilha inteira assistida." },
   { chave: "vagas_camp", label: "Ranking: zona de convocação (top N)", hint: "Linha de corte mostrada na página de ranking." },
 ];

@@ -22,3 +22,4 @@
 - No piloto, autorizar atleta cria filiação `provedor='piloto_cortesia'`; fora do piloto a autorização só libera o pagamento.
 - Parâmetros de negócio (valores, prazos, chaves, aviso global) ficam na tabela `config` e são editados na aba Config do `/admin`; o código lê do banco com fallback, nunca valores fixos.
 - Roadmap: haverá ligas afiliadas acima dos clubes (ranking e seletiva próprios). Nunca assumir clube como topo da hierarquia nem ranking regional fixo por estado.
+- Ranking da etapa 2 usa exclusivamente a Config: Treinou=`pontos_presenca`, Assistiu=`pontos_assistiu` e mantém constância, Falta zera constância, bônus=`pontos_sequencia` a cada `semanas_constancia`, curso=`pontos_curso`; pontos valem por temporada, e Top `vagas_camp` é zona de convocação sujeita à curadoria.

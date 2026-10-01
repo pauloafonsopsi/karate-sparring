@@ -605,7 +605,11 @@ function ListaEspera({ ufInicial }: { ufInicial: string }) {
         </Field>
       </div>
       <Check checked={aceite} onChange={setAceite}>
-        Autorizo o contato e o uso dos meus dados conforme a Política de Privacidade.
+        Autorizo o contato e o uso dos meus dados conforme a{" "}
+        <Link to="/privacidade" className="text-foreground underline">
+          Política de Privacidade
+        </Link>
+        .
       </Check>
       <Btn full disabled={enviando} onClick={() => void enviar()}>
         {enviando ? "Enviando" : "Avisar-me"}
@@ -717,6 +721,12 @@ function Rodape() {
           </Link>
           <Link to="/sensei" className="eyebrow hover:text-foreground">
             Para senseis
+          </Link>
+          <Link to="/termos" className="eyebrow hover:text-foreground">
+            Termos
+          </Link>
+          <Link to="/privacidade" className="eyebrow hover:text-foreground">
+            Privacidade
           </Link>
           <Link to="/auth" className="eyebrow hover:text-foreground">
             Entrar

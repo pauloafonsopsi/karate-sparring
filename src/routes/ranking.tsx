@@ -28,9 +28,19 @@ function Ranking() {
   const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => getAppConfig() });
   const n = config?.numeros;
   const regras = [
-    [`+${n?.pontos_presenca ?? 10}`, "Presença", "Cada treino semanal confirmado pelo sensei."],
-    [`+${n?.pontos_sequencia ?? 15}`, "Constância", "Bônus a cada 4 semanas seguidas sem faltar."],
-    [`+${n?.pontos_curso ?? 25}`, "Curso", "Cada trilha técnica concluída."],
+    [`+${n?.pontos_presenca ?? 10}`, "Treinou", "Treino semanal concluído e confirmado pelo clube."],
+    [
+      `+${n?.pontos_assistiu ?? 5}`,
+      "Assistiu",
+      "Presente sem treinar, ou sem completar o treino. Mantém a constância.",
+    ],
+    [
+      `+${n?.pontos_sequencia ?? 15}`,
+      "Constância",
+      `Bônus a cada ${n?.semanas_constancia ?? 4} semanas seguidas sem falta.`,
+    ],
+    ["Zera", "Falta", "A semana sem presença zera a sequência de constância."],
+    [`+${n?.pontos_curso ?? 25}`, "Curso concluído", "Todos os vídeos da trilha concluídos."],
   ];
   const vagas = n?.vagas_camp ?? 20;
 
@@ -48,13 +58,15 @@ function Ranking() {
       <section className="mx-auto max-w-7xl px-5 pt-16 pb-24 md:px-10 md:pt-24 md:pb-32">
         <p className="eyebrow text-gold-soft">Temporada inaugural · World League</p>
         <h1 className="mt-5 text-[14vw] leading-[0.86] md:text-8xl">Ranking</h1>
-        <p className="mt-6 max-w-md text-base text-foreground/80">Treinar conta. Treinar sempre conta mais.</p>
+        <p className="mt-6 max-w-xl text-base leading-relaxed text-foreground/80">
+          Treinar conta. Assistir mantém a sequência. Faltar recomeça a constância.
+        </p>
       </section>
 
       <section className="border-t border-line">
-        <div className="mx-auto grid max-w-7xl gap-px bg-line md:grid-cols-3">
+        <div className="mx-auto grid max-w-7xl gap-px bg-line sm:grid-cols-2 lg:grid-cols-5">
           {regras.map(([pts, t, d]) => (
-            <div key={t} className="bg-background px-5 py-14 md:px-10">
+            <div key={t} className="bg-background px-5 py-12 lg:px-6">
               <p className="fight-number">{pts}</p>
               <h2 className="mt-4 text-2xl">{t}</h2>
               <p className="mt-2 text-sm text-muted-fg">{d}</p>
@@ -65,6 +77,19 @@ function Ranking() {
 
       <section className="border-t border-line">
         <div className="mx-auto max-w-7xl px-5 py-24 md:px-10 md:py-32">
+          <div className="mb-20 grid gap-8 border-b border-line pb-20 md:grid-cols-[1fr_2fr]">
+            <h2 className="text-3xl md:text-4xl">Uma temporada por vez</h2>
+            <div className="space-y-4 text-sm leading-7 text-muted-fg">
+              <p>
+                Os pontos valem somente dentro da temporada em que foram conquistados. Ao iniciar uma
+                nova temporada, começa uma nova classificação.
+              </p>
+              <p>
+                O Legends Camp acontece ao fim de cada temporada. O Top {vagas} forma a zona de
+                convocação, mas a convocação final passa pela curadoria da liga.
+              </p>
+            </div>
+          </div>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <h2 className="text-4xl leading-[0.9] md:text-6xl">Classificação</h2>
             <p className="eyebrow">Top {vagas} · zona de convocação</p>
