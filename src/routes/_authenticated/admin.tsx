@@ -1038,19 +1038,7 @@ function GestaoClube({ sensei }: { sensei: Sensei }) {
         <p className="eyebrow mb-3">Unidades ({(unidades ?? []).length})</p>
         <div className="space-y-2">
           {(unidades ?? []).map((u) => (
-            <div
-              key={u.id}
-              className="flex flex-wrap items-center justify-between gap-3 border border-line p-3 text-sm"
-            >
-              <span>
-                {u.nome}
-                {u.is_sede ? " (sede)" : ""}
-                <span className="block text-xs text-muted-fg">
-                  {u.dia_aula ? nomeDia(u.dia_aula) : "dia não definido"} · raio {u.raio_metros} m
-                </span>
-              </span>
-              <Badge tone={u.ativa ? "ativo" : "muted"}>{u.ativa ? "ativa" : "inativa"}</Badge>
-            </div>
+            <EditorUnidade key={u.id} unidade={u} onMudou={recarregar} />
           ))}
         </div>
         <Field label="Nova unidade">
