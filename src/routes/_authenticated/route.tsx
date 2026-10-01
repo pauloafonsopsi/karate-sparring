@@ -21,7 +21,7 @@ function AreaLogada() {
   return (
     <>
       {aviso ? (
-        <div className="border-b border-line bg-surface px-4 py-3 text-center text-sm text-fg">
+        <div className="border-b border-line bg-surface px-4 py-3 text-center text-sm text-foreground">
           {aviso}
         </div>
       ) : null}
