@@ -593,6 +593,26 @@ function PainelSensei({
         </div>
 
         <div className="mt-8 space-y-3 border-t border-line pt-6">
+          <Field label="Status do clube" hint="Muda na hora, sem passo intermediário.">
+            <SelectInput
+              value={sensei.status}
+              onChange={(e) => onSave({ status: e.target.value })}
+            >
+              {["aplicou", "aprovado", "ativo", "inativo"].map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+          <div className="flex items-center justify-between border border-line p-4">
+            <span className="text-sm">Clube do piloto</span>
+            <button
+              aria-label="Clube do piloto"
+              onClick={() => onSave({ piloto: !sensei.piloto })}
+              className={`h-7 w-12 border ${sensei.piloto ? "border-brand bg-brand" : "border-line"}`}
+            />
+          </div>
           {sensei.status === "aplicou" && (
             <Btn full onClick={() => onSave({ status: "aprovado" })}>
               Aprovar
