@@ -4,6 +4,7 @@ import { z } from "zod";
 export type AppConfig = {
   modo_piloto: boolean;
   inscricoes_abertas: boolean;
+  aviso_global: string;
 };
 
 export type PublicSensei = {
