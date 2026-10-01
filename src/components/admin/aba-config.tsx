@@ -186,6 +186,58 @@ export function AbaConfig() {
       </section>
 
       <section className="space-y-4">
+        <h2 className="eyebrow">Legends Camp na página inicial</h2>
+        {chave("Mostrar chamada do Camp", cfg?.camp_ativo ?? false, () =>
+          salvar.mutate({ camp_ativo: !(cfg?.camp_ativo ?? false) }),
+        )}
+        <Field label="Título">
+          <TextInput
+            value={textos.camp_titulo}
+            maxLength={60}
+            onChange={(e) => setTextos((t) => ({ ...t, camp_titulo: e.target.value }))}
+          />
+        </Field>
+        <Field label="Data e local" hint="Ex.: Julho 2027 · Santarém/PA. Em branco não aparece.">
+          <TextInput
+            value={textos.camp_data_local}
+            maxLength={80}
+            onChange={(e) => setTextos((t) => ({ ...t, camp_data_local: e.target.value }))}
+          />
+        </Field>
+        <Field label="Texto da chamada">
+          <TextInput
+            value={textos.camp_texto}
+            maxLength={400}
+            onChange={(e) => setTextos((t) => ({ ...t, camp_texto: e.target.value }))}
+          />
+        </Field>
+        <Field label="Link (opcional)" hint="Endereço completo começando com https://">
+          <TextInput
+            value={textos.camp_link}
+            maxLength={300}
+            onChange={(e) => setTextos((t) => ({ ...t, camp_link: e.target.value }))}
+          />
+        </Field>
+        <Btn
+          full
+          variant="outline"
+          disabled={salvar.isPending}
+          onClick={() =>
+            salvar.mutate({
+              textos: {
+                camp_titulo: textos.camp_titulo.trim(),
+                camp_data_local: textos.camp_data_local.trim(),
+                camp_texto: textos.camp_texto.trim(),
+                camp_link: textos.camp_link.trim(),
+              },
+            })
+          }
+        >
+          Salvar Camp
+        </Btn>
+      </section>
+
+      <section className="space-y-4">
         <h2 className="eyebrow">Aviso dentro do app</h2>
         <Field
           label="Texto do aviso"
