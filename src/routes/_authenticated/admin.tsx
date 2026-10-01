@@ -15,7 +15,15 @@ import {
   listarFiliacoes,
   trocarDojoDoAtleta,
 } from "@/lib/filiacoes.functions";
+import { brl } from "@/lib/preco";
 import { nomeDia } from "@/lib/semana";
+import {
+  criarUnidade,
+  definirSlugDoClube,
+  definirSubcontaEAnuidade,
+  listarUnidadesDoClube,
+} from "@/lib/unidades.functions";
+
 import { UFS } from "@/lib/ufs";
 import { whatsappLink } from "@/lib/whatsapp";
 
