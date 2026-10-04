@@ -19,6 +19,7 @@ export type AppConfig = {
   inscricoes_abertas: boolean;
   aviso_global: string;
   camp_ativo: boolean;
+  publico_destaque: "sensei" | "atleta";
   numeros: Record<ChaveParametro, number>;
   textos: Record<ChaveTexto, string>;
 };
@@ -42,6 +43,7 @@ export const getAppConfig = createServerFn({ method: "GET" }).handler(
       inscricoes_abertas: map.get("inscricoes_abertas") !== "false",
       aviso_global: (map.get("aviso_global") ?? "").trim(),
       camp_ativo: map.get("camp_ativo") !== "false",
+      publico_destaque: map.get("publico_destaque") === "atleta" ? "atleta" : "sensei",
       numeros,
       textos,
     };
@@ -72,6 +74,7 @@ const aplicacaoSenseiInput = z.object({
   graduacao: z.string().trim().max(60).optional().nullable(),
   tempo_ensino: z.string().trim().max(60).optional().nullable(),
   instagram: z.string().trim().max(120).optional().nullable(),
+  tipo_licenca: z.enum(["clube", "liga"]).optional().default("clube"),
 });
 
 export const criarAplicacaoSensei = createServerFn({ method: "POST" })
@@ -126,6 +129,7 @@ export const criarAplicacaoSensei = createServerFn({ method: "POST" })
       tempo_ensino: data.tempo_ensino?.trim() || null,
       instagram: data.instagram?.trim() || null,
       status: "aplicou",
+      tipo_licenca: data.tipo_licenca,
     });
 
     if (error) {

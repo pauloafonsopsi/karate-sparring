@@ -70,6 +70,7 @@ function PaginaSensei() {
     instagram: "",
   });
   const [aceite, setAceite] = useState(false);
+  const [tipo, setTipo] = useState<"clube" | "liga">("clube");
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
@@ -107,6 +108,7 @@ function PaginaSensei() {
           graduacao: form.graduacao || null,
           tempo_ensino: form.tempo_ensino || null,
           instagram: form.instagram.trim() || null,
+          tipo_licenca: tipo,
         },
       });
       setEnviado(true);
@@ -182,6 +184,28 @@ function PaginaSensei() {
             </div>
           ) : (
             <div className="space-y-4">
+              <fieldset>
+                <legend className="eyebrow mb-3">O que você quer licenciar?</legend>
+                <div className="grid grid-cols-2 gap-3">
+                  {(
+                    [
+                      ["clube", "Meu clube", "Um dojô com uma ou mais unidades."],
+                      ["liga", "Uma liga", "Vários clubes de senseis diferentes. Vamos conversar."],
+                    ] as const
+                  ).map(([v, t, d]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      aria-pressed={tipo === v}
+                      onClick={() => setTipo(v)}
+                      className={`min-h-11 border p-4 text-left ${tipo === v ? "border-brand" : "border-line"}`}
+                    >
+                      <span className="block text-sm font-semibold">{t}</span>
+                      <span className="mt-1 block text-xs text-muted-fg">{d}</span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
               <Field label="Nome completo">
                 <TextInput
                   value={form.nome}
