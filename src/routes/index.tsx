@@ -704,18 +704,18 @@ function Faq({ filiacao }: { filiacao: number }) {
       "Preciso sair do meu dojô?",
       "Não. A turma da liga é um treino semanal à parte. Você continua nas suas aulas regulares com o seu sensei.",
     ],
-    ["Qual a idade mínima?", "18 anos. A liga é exclusiva para adultos."],
+    ["Qual a idade mínima?", "18 anos. A liga admite apenas adultos."],
     [
       "Qual faixa é exigida?",
       "Nenhuma. Qualquer graduação pode participar, da branca à preta.",
     ],
     [
       "Como chego ao Legends Camp?",
-      "Treinando com constância e subindo no ranking. A convocação passa por curadoria da liga.",
+      "Os atletas mais assíduos e os melhores de cada região são considerados ao fim da temporada. A convocação é feita por curadoria da liga.",
     ],
     [
       "Sou sensei. Como meu clube entra?",
-      "Envie a aplicação na página para senseis. Após aprovação, seu clube ganha o link próprio de inscrição.",
+      "O sensei solicita o credenciamento na página para senseis. Clubes credenciados recebem o link próprio de inscrição. Quem reúne clubes de outros senseis pode solicitar o credenciamento de uma liga.",
     ],
   ];
   return (
@@ -723,7 +723,7 @@ function Faq({ filiacao }: { filiacao: number }) {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-24 md:grid-cols-[1fr_2fr] md:px-10 md:py-36">
         <div>
           <p className="eyebrow">Perguntas</p>
-          <h2 className="mt-4 text-4xl leading-[0.9] md:text-5xl">O que todo mundo pergunta</h2>
+          <h2 className="mt-4 text-4xl leading-[0.9] md:text-5xl">Perguntas frequentes</h2>
         </div>
         <div className="border-t border-line">
           {itens.map(([p, r]) => (
