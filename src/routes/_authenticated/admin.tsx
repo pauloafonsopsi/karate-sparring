@@ -62,7 +62,7 @@ type Sensei = {
   email: string;
   graduacao: string | null;
   tempo_ensino: string | null;
-  tipo_licenca?: string | null;
+  tipo_licenca?: string;
   instagram: string | null;
   foto_url: string | null;
   status: string;
