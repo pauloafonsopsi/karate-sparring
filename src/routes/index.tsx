@@ -153,10 +153,10 @@ function Top10Secao() {
     <section id="top10" className="scroll-mt-10 border-t border-line">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 md:grid-cols-[1fr_1.2fr] md:px-10 md:py-32">
         <div>
-          <p className="eyebrow">Ranking da temporada</p>
+          <p className="eyebrow">Quadro da temporada</p>
           <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Top 10</h2>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-fg">
-            Quem treina toda semana sobe. A classificação completa fica na sua área.
+            Na liga, sobe quem está presente. A classificação completa fica na área do atleta.
           </p>
           <Link to="/ranking" className="eyebrow mt-8 inline-block border-b border-foreground/30 pb-1 text-foreground hover:border-foreground">
             Como pontua
@@ -192,37 +192,33 @@ function Hero({ sensei }: { sensei: boolean }) {
       <div className="mx-auto w-full max-w-7xl px-5 pt-32 pb-14 md:px-10 md:pb-24">
         <div className="max-w-xl">
           <Monograma className="h-20 w-20 md:h-28 md:w-28" />
-          <p className="eyebrow mt-6 text-gold-soft">World League · liga de clubes licenciados</p>
+          <p className="eyebrow mt-6 text-gold-soft">Karate Legends · Liga de sparring de karatê</p>
           <h1 className="mt-4 text-[13vw] leading-[0.86] [text-shadow:0_2px_24px_var(--background)] md:text-7xl lg:text-8xl">
             {sensei ? (
               <>
-                Leve a liga
-                <br />
-                ao seu dojô
+<span className="block text-[8vw] md:text-5xl lg:text-6xl">Credenciamento de clubes e ligas · Temporada inaugural</span>
               </>
             ) : (
               <>
-                Sparring
-                <br />
-                toda semana
+<span className="block text-[9vw] md:text-6xl lg:text-7xl">A liga de sparring do Karate Legends.</span>
               </>
             )}
           </h1>
           <p className="mt-6 max-w-md text-base leading-relaxed text-foreground/90">
             {sensei
-              ? "Uma turma de combate por semana no seu clube, com ranking e caminho até o Legends Camp."
-              : "Uma turma de combate por semana. Cada treino conta no ranking."}
+              ? "A liga admite clubes de karatê que conduzem a turma semanal de sparring dentro do seu padrão."
+              : "Clubes licenciados. Uma temporada. Um ranking. Um passaporte para cada atleta."}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             {sensei ? (
               <>
-                <Link to="/sensei" className={ouro}>Licenciar clube</Link>
-                <a href="#clubes" className={contorno}>Buscar clube</a>
+                <Link to="/sensei" className={ouro}>Solicitar credenciamento</Link>
+                <a href="#clubes" className={contorno}>Encontrar um clube</a>
               </>
             ) : (
               <>
-                <a href="#clubes" className={ouro}>Buscar clube</a>
-                <Link to="/sensei" className={contorno}>Licenciar clube</Link>
+                <a href="#clubes" className={ouro}>Encontrar um clube</a>
+                <Link to="/sensei" className={contorno}>Solicitar credenciamento</Link>
               </>
             )}
           </div>
@@ -236,10 +232,10 @@ function Hero({ sensei }: { sensei: boolean }) {
 
 function Rotina() {
   const passos = [
-    ["01", "Escolha o clube", "Veja o preço total antes de se cadastrar."],
-    ["02", "Seja autorizado", "O sensei confirma sua entrada na turma."],
-    ["03", "Treine e marque presença", "Sparring semanal, presença confirmada pelo sensei."],
-    ["04", "Suba no ranking", "Cada semana conta na sua posição."],
+    ["01", "O clube", "O atleta escolhe um clube licenciado. Os valores aparecem antes da inscrição."],
+    ["02", "A admissão", "O sensei confirma sua entrada e seu nível."],
+    ["03", "A presença", "Uma turma de sparring por semana. Cada presença é registrada."],
+    ["04", "O ranking", "A assiduidade define a posição na temporada."],
   ];
   return (
     <section id="rotina" className="relative scroll-mt-10 border-t border-line">
@@ -252,7 +248,7 @@ function Rotina() {
             <span className="text-muted-fg">Toda semana.</span>
           </h2>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-fg">
-            Um treino extra por semana. Você continua no seu dojô, com seu sensei.
+            Uma turma semanal de sparring. O atleta segue no seu dojô, com o seu sensei.
           </p>
           <div className="relative mt-10 aspect-[4/3] overflow-hidden">
             <img
@@ -299,13 +295,13 @@ function Passaporte() {
       <div className="absolute inset-0 -z-10" style={{ backgroundImage: "var(--fade-bottom)" }} />
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-24 md:grid-cols-2 md:px-10 md:py-36">
         <div>
-          <p className="eyebrow">O que você ganha</p>
-          <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Seu passaporte de atleta</h2>
+          <p className="eyebrow">A credencial do atleta</p>
+          <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Passaporte do atleta</h2>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-fg">
-            Clube, posição no ranking e semanas treinadas. Sua história de combate.
+            Todo atleta da liga tem um. Ele registra o clube, a temporada, a posição e cada semana de presença.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
-            {["Posição no ranking da liga", "Sequência de semanas sem faltar", "Histórico de presença no clube"].map((t) => (
+            {["Clube e temporada", "Posição no quadro da liga", "Semanas de presença"].map((t) => (
               <li key={t} className="flex items-center gap-3">
                 <span className="h-px w-6 bg-foreground/40" />
                 {t}
@@ -328,7 +324,7 @@ function Passaporte() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="eyebrow">Passaporte · temporada</p>
-                <p className="display mt-3 text-2xl">Rafael Moura</p>
+                <p className="display mt-3 text-2xl">Seu nome</p>
                 <p className="mt-1 text-xs text-muted-fg">Faixa marrom · Clube exemplo · PA</p>
               </div>
               <Monograma className="h-10 w-10 shrink-0" />
@@ -367,7 +363,7 @@ function Camp({ config }: { config: Config }) {
   const dataLocal = config?.camp_ativo ? config.textos.camp_data_local : "";
   const texto =
     (config?.camp_ativo && config.textos.camp_texto) ||
-    "O destino de quem treina toda semana. Os atletas que se destacam no ranking podem ser convocados, por curadoria da liga, para viver o Camp.";
+    "Ao fim de cada temporada, o Legends Camp reúne, em três dias de reality show, os atletas mais assíduos e os melhores de cada região.";
   const link = config?.camp_ativo ? config.textos.camp_link : "";
 
   return (
@@ -390,12 +386,12 @@ function Camp({ config }: { config: Config }) {
 
       <div className="mx-auto flex min-h-[85svh] max-w-7xl items-center px-5 py-24 md:px-10">
         <div className="max-w-xl">
-          <p className="eyebrow text-gold-soft">O sonho</p>
+          <p className="eyebrow text-gold-soft">Fim de temporada</p>
           <h2 className="mt-4 text-5xl leading-[0.86] md:text-8xl">{titulo}</h2>
           {dataLocal && <p className="display mt-5 text-base text-foreground/90">{dataLocal}</p>}
           <p className="mt-6 max-w-md text-base leading-relaxed text-foreground/80">{texto}</p>
           <p className="mt-6 text-xs text-muted-fg">
-            A convocação passa por curadoria da liga. Treinar com constância é o caminho.
+            A convocação é feita por curadoria da liga.
           </p>
           {link && (
             <a
@@ -437,7 +433,7 @@ function Vitrine({
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="eyebrow">Clubes licenciados</p>
-            <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Encontre seu clube</h2>
+            <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Encontrar um clube</h2>
           </div>
           <div className="w-full md:w-64">
             <Field label="Seu estado">
@@ -492,12 +488,10 @@ function EstadoVazio({ uf }: { uf: string }) {
         <div className="absolute inset-0 -z-10 opacity-60" style={{ backgroundImage: "var(--glow-marsala)" }} />
         <p className="eyebrow">Para atletas</p>
         <h3 className="mt-3 text-3xl leading-[0.9]">
-          Ainda não chegou{uf ? ` em ${uf}` : " aí"}?
-          <br />
-          Avisar-me
+          A liga ainda não chegou {uf ? `a ${uf}` : "ao seu estado"}.
         </h3>
         <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-fg">
-          Deixe seu contato. Você será avisado quando abrir um clube licenciado na sua região.
+          O registro de interesse avisa o atleta quando um clube for licenciado na região.
         </p>
         <div className="mt-8">
           <ListaEspera ufInicial={uf} />
@@ -521,20 +515,20 @@ function EstadoVazio({ uf }: { uf: string }) {
         <div>
           <p className="eyebrow">Para senseis</p>
           <h3 className="mt-3 text-3xl leading-[0.9]">
-            Seja o primeiro clube
+            O primeiro clube
             <br />
-            {uf ? `de ${uf}` : "do seu estado"}
+            {uf ? `de ${uf}` : "do estado"}
           </h3>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-fg">
-            Licencie seu dojô, abra a turma semanal da liga e defina a sua mensalidade. Os
-            atletas da região chegam até você.
+            O clube credenciado conduz a turma semanal no padrão da liga e define a própria
+            mensalidade.
           </p>
         </div>
         <Link
           to="/sensei"
           className="mt-10 inline-flex min-h-13 items-center justify-center border border-foreground/40 px-6 text-sm font-semibold tracking-[0.14em] uppercase hover:border-foreground md:self-start"
         >
-          Licenciar meu clube
+          Credenciar o primeiro clube do estado
         </Link>
       </div>
     </div>
@@ -588,7 +582,7 @@ function ListaEspera({ ufInicial }: { ufInicial: string }) {
           aceite_lgpd: true as const,
         },
       });
-      setPronto("Você será o primeiro a saber quando a liga chegar à sua região.");
+      setPronto("Interesse registrado. A liga avisa quando um clube for licenciado na sua região.");
     } catch {
       toast.error("Não conseguimos salvar seus dados. Verifique a conexão e tente de novo.");
     } finally {
@@ -651,7 +645,7 @@ function ListaEspera({ ufInicial }: { ufInicial: string }) {
         .
       </Check>
       <Btn full disabled={enviando} onClick={() => void enviar()}>
-        {enviando ? "Enviando" : "Avisar-me"}
+        {enviando ? "Enviando" : "Registrar interesse"}
       </Btn>
     </div>
   );
