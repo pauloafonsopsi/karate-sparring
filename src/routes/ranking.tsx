@@ -1,3 +1,4 @@
+import { Top10 } from "@/components/top10";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -94,21 +95,8 @@ function Ranking() {
             <h2 className="text-4xl leading-[0.9] md:text-6xl">Classificação</h2>
             <p className="eyebrow">Top {vagas} · zona de convocação</p>
           </div>
-          <div className="mt-10 border border-line">
-            <div className="grid grid-cols-[3rem_1fr_auto] gap-4 border-b border-line px-5 py-3 eyebrow md:grid-cols-[4rem_1fr_1fr_6rem_6rem]">
-              <span>#</span>
-              <span>Atleta</span>
-              <span className="hidden md:block">Clube</span>
-              <span className="hidden md:block">Semanas</span>
-              <span className="text-right">Pontos</span>
-            </div>
-            <div className="px-5 py-16 text-center">
-              <p className="display text-xl">Temporada em credenciamento</p>
-              <p className="mx-auto mt-3 max-w-sm text-sm text-muted-fg">
-                A classificação aparece aqui assim que os primeiros clubes começarem a treinar.
-              </p>
-            </div>
-            <div className="gold-rule" />
+          <div className="mt-10">
+            <Top10 />
           </div>
           <p className="mt-6 text-xs text-muted-fg">
             A convocação para o Legends Camp passa por curadoria da liga. Estar na zona é o caminho, não a garantia.

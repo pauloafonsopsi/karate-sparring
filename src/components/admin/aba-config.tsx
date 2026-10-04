@@ -108,6 +108,7 @@ export function AbaConfig() {
       modo_piloto?: boolean;
       inscricoes_abertas?: boolean;
       camp_ativo?: boolean;
+      publico_destaque?: "sensei" | "atleta";
       aviso_global?: string;
       numeros?: Record<string, number>;
       textos?: Partial<Record<ChaveTexto, string>>;
@@ -163,6 +164,22 @@ export function AbaConfig() {
         {chave("Inscrições de atletas abertas", cfg?.inscricoes_abertas ?? false, () =>
           salvar.mutate({ inscricoes_abertas: !(cfg?.inscricoes_abertas ?? false) }),
         )}
+        <div className="border border-line bg-surface p-4">
+          <p className="text-sm">Público em destaque na página inicial</p>
+          <p className="mt-1 text-xs text-muted-fg">Define o botão dourado e a chamada principal.</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(["sensei", "atleta"] as const).map((p) => (
+              <button
+                key={p}
+                aria-pressed={(cfg?.publico_destaque ?? "sensei") === p}
+                onClick={() => salvar.mutate({ publico_destaque: p })}
+                className={`min-h-11 border text-sm ${(cfg?.publico_destaque ?? "sensei") === p ? "border-brand" : "border-line"}`}
+              >
+                {p === "sensei" ? "Senseis" : "Atletas"}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="space-y-4">

@@ -1,0 +1,2 @@
+ALTER TABLE public.senseis ADD COLUMN IF NOT EXISTS tipo_licenca text NOT NULL DEFAULT 'clube';
+ALTER TABLE public.senseis ADD CONSTRAINT senseis_tipo_licenca_check CHECK (tipo_licenca IN ('clube','liga'));

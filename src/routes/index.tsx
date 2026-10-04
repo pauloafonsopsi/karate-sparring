@@ -11,6 +11,7 @@ import heroDesktopAsset from "@/assets/hero-desktop.webp.asset.json";
 import heroMobileAsset from "@/assets/hero-mobile.webp.asset.json";
 import rotinaAsset from "@/assets/rotina.webp.asset.json";
 import { MarcaCompacta, Monograma } from "@/components/brand";
+import { Top10 } from "@/components/top10";
 import { Btn, Check, Field, SelectInput, TextInput } from "@/components/kit";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuAcesso } from "@/lib/acesso.functions";
@@ -91,8 +92,9 @@ function Landing() {
   return (
     <main className="min-h-screen bg-background">
       <Cabecalho />
-      <Hero />
+      <Hero sensei={(config?.publico_destaque ?? "sensei") === "sensei"} />
       <Rotina />
+      <Top10Secao />
       <Passaporte />
       <Camp config={config} />
       <Vitrine
@@ -141,7 +143,32 @@ function Cabecalho() {
 
 /* ---------------------------------------------------------------- Hero */
 
-function Hero() {
+const ouro =
+  "inline-flex min-h-14 items-center justify-center bg-brand px-8 text-sm font-semibold tracking-[0.14em] text-background uppercase hover:bg-gold-soft";
+const contorno =
+  "inline-flex min-h-14 items-center justify-center border border-foreground/30 px-8 text-sm font-semibold tracking-[0.14em] text-foreground uppercase hover:border-foreground";
+
+function Top10Secao() {
+  return (
+    <section id="top10" className="scroll-mt-10 border-t border-line">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 md:grid-cols-[1fr_1.2fr] md:px-10 md:py-32">
+        <div>
+          <p className="eyebrow">Ranking da temporada</p>
+          <h2 className="mt-4 text-4xl leading-[0.9] md:text-6xl">Top 10</h2>
+          <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-fg">
+            Quem treina toda semana sobe. A classificação completa fica na sua área.
+          </p>
+          <Link to="/ranking" className="eyebrow mt-8 inline-block border-b border-foreground/30 pb-1 text-foreground hover:border-foreground">
+            Como pontua
+          </Link>
+        </div>
+        <Top10 />
+      </div>
+    </section>
+  );
+}
+
+function Hero({ sensei }: { sensei: boolean }) {
   return (
     <section className="relative isolate flex min-h-[100svh] items-end overflow-hidden md:items-center" style={{ backgroundImage: "radial-gradient(ellipse at 75% 25%, color-mix(in oklab, var(--marsala) 85%, transparent), var(--background) 70%)" }}>
       <picture className="absolute inset-0 -z-20">
@@ -164,28 +191,40 @@ function Hero() {
 
       <div className="mx-auto w-full max-w-7xl px-5 pt-32 pb-14 md:px-10 md:pb-24">
         <div className="max-w-xl">
-          <p className="eyebrow text-gold-soft">Liga de sparring de karatê · adultos 18+</p>
-          <h1 className="mt-5 text-[13vw] leading-[0.86] md:text-7xl lg:text-8xl">
-            Sparring
-            <br />
-            toda semana
+          <Monograma className="h-20 w-20 md:h-28 md:w-28" />
+          <p className="eyebrow mt-6 text-gold-soft">World League · liga de clubes licenciados</p>
+          <h1 className="mt-4 text-[13vw] leading-[0.86] [text-shadow:0_2px_24px_var(--background)] md:text-7xl lg:text-8xl">
+            {sensei ? (
+              <>
+                Leve a liga
+                <br />
+                ao seu dojô
+              </>
+            ) : (
+              <>
+                Sparring
+                <br />
+                toda semana
+              </>
+            )}
           </h1>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-foreground/80">
-            Uma turma de combate por semana. Cada treino conta no ranking.
+          <p className="mt-6 max-w-md text-base leading-relaxed text-foreground/90">
+            {sensei
+              ? "Uma turma de combate por semana no seu clube, com ranking e caminho até o Legends Camp."
+              : "Uma turma de combate por semana. Cada treino conta no ranking."}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href="#clubes"
-              className="inline-flex min-h-14 items-center justify-center bg-brand px-8 text-sm font-semibold tracking-[0.14em] text-background uppercase hover:bg-gold-soft"
-            >
-              Buscar clube
-            </a>
-            <Link
-              to="/sensei"
-              className="inline-flex min-h-14 items-center justify-center border border-foreground/30 px-8 text-sm font-semibold tracking-[0.14em] text-foreground uppercase hover:border-foreground"
-            >
-              Licenciar clube
-            </Link>
+            {sensei ? (
+              <>
+                <Link to="/sensei" className={ouro}>Licenciar clube</Link>
+                <a href="#clubes" className={contorno}>Buscar clube</a>
+              </>
+            ) : (
+              <>
+                <a href="#clubes" className={ouro}>Buscar clube</a>
+                <Link to="/sensei" className={contorno}>Licenciar clube</Link>
+              </>
+            )}
           </div>
         </div>
       </div>

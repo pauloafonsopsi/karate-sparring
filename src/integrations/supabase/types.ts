@@ -548,6 +548,7 @@ export type Database = {
           slug: string
           status: string
           tempo_ensino: string | null
+          tipo_licenca: string
           uf: string
           whatsapp: string
         }
@@ -591,6 +592,7 @@ export type Database = {
           slug: string
           status?: string
           tempo_ensino?: string | null
+          tipo_licenca?: string
           uf: string
           whatsapp: string
         }
@@ -634,6 +636,7 @@ export type Database = {
           slug?: string
           status?: string
           tempo_ensino?: string | null
+          tipo_licenca?: string
           uf?: string
           whatsapp?: string
         }

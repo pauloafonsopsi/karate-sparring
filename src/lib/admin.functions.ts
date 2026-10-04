@@ -55,6 +55,7 @@ export type ConfigAdmin = {
   modo_piloto: boolean;
   inscricoes_abertas: boolean;
   camp_ativo: boolean;
+  publico_destaque: "sensei" | "atleta";
   aviso_global: string;
   numeros: Record<ChaveParametro, number>;
   textos: Record<ChaveTexto, string>;
@@ -82,6 +83,7 @@ export const getConfigAdmin = createServerFn({ method: "GET" })
       modo_piloto: map.get("modo_piloto") !== "false",
       inscricoes_abertas: map.get("inscricoes_abertas") !== "false",
       camp_ativo: map.get("camp_ativo") !== "false",
+      publico_destaque: map.get("publico_destaque") === "atleta" ? "atleta" : "sensei",
       aviso_global: map.get("aviso_global") ?? "",
       numeros,
       textos,
@@ -110,6 +112,7 @@ const configInput = z.object({
   modo_piloto: z.boolean().optional(),
   inscricoes_abertas: z.boolean().optional(),
   camp_ativo: z.boolean().optional(),
+  publico_destaque: z.enum(["sensei", "atleta"]).optional(),
   aviso_global: z.string().trim().max(280).optional(),
   numeros: z.record(z.string(), z.number().int()).optional(),
   textos: z
@@ -142,6 +145,9 @@ export const salvarConfigAdmin = createServerFn({ method: "POST" })
     }
     if (data.camp_ativo !== undefined) {
       linhas.push({ chave: "camp_ativo", valor: String(data.camp_ativo) });
+    }
+    if (data.publico_destaque !== undefined) {
+      linhas.push({ chave: "publico_destaque", valor: data.publico_destaque });
     }
     for (const [chave, valor] of Object.entries(data.textos ?? {})) {
       if (valor !== undefined) linhas.push({ chave, valor });

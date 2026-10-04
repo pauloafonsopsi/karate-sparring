@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791074408737,
+      "tag": "0000_senseis_tipo_licenca",
+      "breakpoints": true
+    }
+  ]
+}
