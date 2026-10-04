@@ -144,9 +144,9 @@ function Cabecalho() {
 /* ---------------------------------------------------------------- Hero */
 
 const ouro =
-  "inline-flex min-h-14 items-center justify-center bg-brand px-8 text-sm font-semibold tracking-[0.14em] text-background uppercase hover:bg-gold-soft";
+  "inline-flex min-h-14 items-center justify-center bg-brand px-8 text-sm font-semibold tracking-[0.14em] text-background uppercase hover:bg-gold-soft whitespace-nowrap";
 const contorno =
-  "inline-flex min-h-14 items-center justify-center border border-foreground/30 px-8 text-sm font-semibold tracking-[0.14em] text-foreground uppercase hover:border-foreground";
+  "inline-flex min-h-14 items-center justify-center border border-foreground/30 px-8 text-sm font-semibold tracking-[0.14em] text-foreground uppercase hover:border-foreground whitespace-nowrap";
 
 function Top10Secao() {
   return (
@@ -190,7 +190,7 @@ function Hero({ sensei }: { sensei: boolean }) {
       />
 
       <div className="mx-auto w-full max-w-7xl px-5 pt-32 pb-14 md:px-10 md:pb-24">
-        <div className="max-w-xl">
+        <div className="max-w-2xl">
           <Monograma className="h-20 w-20 md:h-28 md:w-28" />
           <p className="eyebrow mt-6 text-gold-soft">Karate Legends · Liga de sparring de karatê</p>
           <h1 className="mt-4 text-[13vw] leading-[0.86] [text-shadow:0_2px_24px_var(--background)] md:text-7xl lg:text-8xl">
