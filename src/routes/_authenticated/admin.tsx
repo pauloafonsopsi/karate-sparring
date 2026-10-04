@@ -62,6 +62,7 @@ type Sensei = {
   email: string;
   graduacao: string | null;
   tempo_ensino: string | null;
+  tipo_licenca?: string | null;
   instagram: string | null;
   foto_url: string | null;
   status: string;
@@ -479,6 +480,7 @@ function PainelSensei({
         <dl className="mt-6 space-y-2 border-y border-line py-4 text-sm">
           {[
             ["Status", sensei.status],
+            ["Quer licenciar", sensei.tipo_licenca === "liga" ? "Uma liga" : "Clube"],
             ["Email", sensei.email],
             ["WhatsApp", sensei.whatsapp],
             ["Graduação", sensei.graduacao ?? "—"],
